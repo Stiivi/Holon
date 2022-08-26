@@ -77,6 +77,24 @@ public class Graph: HolonProtocol, MutableGraphProtocol {
         }
     }
 
+    /// List of top-level ports of the graph.
+    ///
+    /// The top-level ports of the graph can not be used directly. They are
+    /// a design nodes that can be used if the whole contents of the graph
+    /// becomes a holon.
+    ///
+    public var ports: [Port] {
+        nodes.compactMap {
+            if $0.holon == nil {
+                return $0 as? Port
+            }
+            else {
+                return nil
+            }
+        }
+    }
+
+    
     /// Publisher of graph changes before they are applied. The associated
     /// graph object and the graph are in their original state.
     ///
@@ -139,15 +157,25 @@ public class Graph: HolonProtocol, MutableGraphProtocol {
     ///
     ///     - node: Node to be added to the graph.
     ///
-    /// - Precondition: Node must not belong to any graph
+    /// - Precondition: Node must not belong to any graph.
     public func add(_ node: Node) {
         self.add(node, into: nil)
     }
+
+    /// - Precondition: If node is a port, then its represented node must belong
+    /// to the same holon.
+    ///
     public func add(_ node: Node, into holon: Holon?=nil) {
-        precondition(node.holon == nil, "Trying to associate already associated node: \(node)")
-
-        // FIXME: Check holon node for cycles
-
+        precondition(node.graph == nil, "Trying to associate already associated node: \(node)")
+        
+        if let port = node as? Port {
+            precondition(port.representedNode.graph === self,
+                         "Trying to add a port with represented node from another graph")
+            precondition(port.representedNode.holon === holon
+                         || (port.representedNode is Port && port.representedNode.holon!.holon === holon),
+                         "Port's represented node must belong to the same holon or be a port of a a child holon")
+        }
+        
         node.holon = holon
         node.graph = self
 
@@ -277,6 +305,23 @@ public class Graph: HolonProtocol, MutableGraphProtocol {
     ///     - attributes: Attributes of the link.
     ///     - id: Unique link identifier. Link with given identifier must not
     ///     exist. If not provided, new one is assigned.
+    ///     - follow: flag whether ports are being followed
+    ///
+    /// ## Rules for connection:
+    ///
+    /// If the ports are note being followed:
+    ///
+    /// - A node can be connected to any node (including holons and ports)
+    ///   within the same holon
+    /// - A node (including holons and ports) can be connected to the holon
+    ///   which owns the node
+    ///
+    /// If the ports are being followed, then in addition to the rules above,
+    /// the following connections are allowed:
+    ///
+    /// - A node to a port of a child holon
+    /// - A port of a child holon to a port of a child holon
+    ///
     ///
     /// - Returns: Newly created link
     ///

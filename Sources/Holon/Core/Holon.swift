@@ -9,6 +9,8 @@
 public protocol HolonProtocol: GraphProtocol {
     var holons: [Holon] { get }
     var allHolons: [Holon] { get }
+    var ports: [Port] { get }
+    var allPorts: [Port] { get }
 }
 
 public extension HolonProtocol {
@@ -17,6 +19,13 @@ public extension HolonProtocol {
     ///
     var allHolons: [Holon] {
         nodes.compactMap { $0 as? Holon }
+    }
+
+    /// List of all ports, including nested one, that are contained in the
+    /// graph.
+    ///
+    var allPorts: [Port] {
+        nodes.compactMap { $0 as? Port }
     }
 }
 
@@ -56,6 +65,17 @@ public class Holon: Node, HolonProtocol, MutableGraphProtocol {
         }
     }
     
+    public var ports: [Port] {
+        nodes.compactMap {
+            if $0.holon == self {
+                return $0 as? Port
+            }
+            else {
+                return nil
+            }
+        }
+    }
+
     /// Add a node to the holon.
     ///
     /// A node is added to the graph and marked as belonging to this holon.

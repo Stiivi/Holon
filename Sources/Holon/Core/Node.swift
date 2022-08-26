@@ -35,7 +35,7 @@ open class Node: Object {
     ///   node.
     ///
     public var outgoing: [Link] {
-        return holon!.outgoing(self)
+        return graph!.outgoing(self)
     }
 
     /// Links incoming to the node, that is links where the node is the target.
@@ -48,7 +48,7 @@ open class Node: Object {
     ///   node.
     ///
     public var incoming: [Link] {
-        return holon!.incoming(self)
+        return graph!.incoming(self)
     }
     
     /// All the links that are associated somewhat with the node.
@@ -56,7 +56,7 @@ open class Node: Object {
     /// It is empty when the node is not associated with a graph.
     ///
     public var neighbours: [Link] {
-        return holon!.neighbours(self)
+        return graph!.neighbours(self)
     }
     
     /// Returns links that match the selector `selector`.

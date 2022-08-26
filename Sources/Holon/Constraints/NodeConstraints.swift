@@ -68,7 +68,7 @@ public class UniqueNeighbourRequirement: NodeConstraintRequirement {
     }
     
     public func check(_ node: Node) -> Bool {
-        guard node.holon != nil else {
+        guard node.graph != nil else {
             fatalError("Requirement can not be checked on a node without a graph")
         }
         let links = node.linksWithSelector(linkSelector)

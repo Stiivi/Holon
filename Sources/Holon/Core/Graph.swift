@@ -280,17 +280,55 @@ public class Graph: HolonProtocol, MutableGraphProtocol {
     ///
     /// - Returns: Newly created link
     ///
-    /// - Precondition: Origin and target must be from the same holon
+    /// - Precondition: Origin and target must be from the same graph and
+    /// the connection must follow the rules mentioned above. It is up
+    /// to the caller to take care of the connection rules to prevent fatal
+    /// errors.
     ///
     @discardableResult
     public func connect(from origin: Node,
                         to target: Node,
                         labels: LabelSet=[],
-                        id: OID?=nil) -> Link {
+                        id: OID?=nil,
+                        follow: Bool) -> Link {
         precondition(origin.graph === self, "Connecting from an origin from a different graph")
         precondition(target.graph === self, "Connecting to a target from a different graph")
         
-        let link = Link(origin: origin, target: target, labels: labels, id: id)
+        let finalOrigin: Node
+        let finalTarget: Node
+        
+        if follow {
+            if let origin = origin as? Port, !(target is Port) {
+                precondition(origin.holon!.holon === target.holon)
+                finalOrigin = origin.finalNode
+                finalTarget = target
+            }
+            else if let target = target as? Port, !(origin is Port) {
+                precondition(origin.holon === target.holon!.holon)
+                finalOrigin = origin
+                finalTarget = target.finalNode
+            }
+            else if let origin = origin as? Port, let target = target as? Port {
+                precondition(origin.holon === target.holon)
+                finalOrigin = origin.finalNode
+                finalTarget = target.finalNode
+            }
+            else {
+                finalOrigin = origin
+                finalTarget = target
+            }
+        }
+        else {
+            // We can connect only nodes from within the same holon
+            // or from the parent to the child
+            precondition(origin.holon === target.holon
+                         || origin.holon === target
+                         || origin === target.holon)
+            finalOrigin = origin
+            finalTarget = target
+        }
+        
+        let link = Link(origin: finalOrigin, target: finalTarget, labels: labels, id: id)
         
         let change = GraphChange.connect(link)
         willChange(change)
@@ -301,7 +339,14 @@ public class Graph: HolonProtocol, MutableGraphProtocol {
         
         return link
     }
-    
+    @discardableResult
+    public func connect(from origin: Node,
+                        to target: Node,
+                        labels: LabelSet=[],
+                        id: OID?=nil) -> Link {
+        return connect(from: origin, to: target, labels: labels, id: id, follow: false)
+    }
+
     /// Adds a custom-created link to the graph.
     ///
     /// This method can be also used to associate previously associated link

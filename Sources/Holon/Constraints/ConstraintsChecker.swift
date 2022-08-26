@@ -10,7 +10,7 @@ public struct ConstraintViolation: CustomStringConvertible, CustomDebugStringCon
     public let constraint: Constraint
     
     // FIXME: Split into links and nodes
-    public let objects: [GraphObject]
+    public let objects: [Object]
 
     public var name: String { constraint.name }
 

@@ -80,7 +80,7 @@ public enum LogicalConnective {
 // - various compilation errors
 
 public protocol Predicate {
-    func match(_ object: GraphObject) -> Bool
+    func match(_ object: Object) -> Bool
     func and(_ predicate: Predicate) -> CompoundPredicate
     func or(_ predicate: Predicate) -> CompoundPredicate
 }
@@ -103,7 +103,7 @@ public class CompoundPredicate: Predicate {
         self.predicates = predicates
     }
     
-    public func match(_ object: GraphObject) -> Bool {
+    public func match(_ object: Object) -> Bool {
         switch connective {
         case .and: return predicates.allSatisfy{ $0.match(object) }
         case .or: return predicates.contains{ $0.match(object) }
@@ -116,7 +116,7 @@ public class NegationPredicate: Predicate {
     public init(_ predicate: any Predicate) {
         self.predicate = predicate
     }
-    public func match(_ object: GraphObject) -> Bool {
+    public func match(_ object: Object) -> Bool {
         return !predicate.match(object)
     }
 }

@@ -23,7 +23,7 @@ public class NodeConstraint: Constraint {
     /// Check the graph for the constraint and return a list of nodes that
     /// violate the constraint
     ///
-    public func check(_ graph: Graph) -> [GraphObject] {
+    public func check(_ graph: Graph) -> [Object] {
         let matched = graph.nodes.filter { match.match($0) }
         let violating = requirement.check(matched)
         return violating
@@ -38,7 +38,7 @@ public protocol NodeConstraintRequirement {
     ///
     /// - Returns: List of graph objects that cause constraint violation.
     ///
-    func check(_ nodes: [Node]) -> [GraphObject]
+    func check(_ nodes: [Node]) -> [Object]
 }
 
 
@@ -68,7 +68,7 @@ public class UniqueNeighbourRequirement: NodeConstraintRequirement {
     }
     
     public func check(_ node: Node) -> Bool {
-        guard node.graph != nil else {
+        guard node.holon != nil else {
             fatalError("Requirement can not be checked on a node without a graph")
         }
         let links = node.linksWithSelector(linkSelector)
@@ -81,7 +81,7 @@ public class UniqueNeighbourRequirement: NodeConstraintRequirement {
         }
     }
 
-    public func check(_ nodes: [Node]) -> [GraphObject] {
+    public func check(_ nodes: [Node]) -> [Object] {
         return nodes.filter { !check($0) }
     }
 }

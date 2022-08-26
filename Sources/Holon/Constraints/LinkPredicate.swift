@@ -23,7 +23,7 @@ public protocol LinkPredicate: Predicate {
 // TODO: Reason: see generics rant in Predicate.swift
 extension LinkPredicate {
     // TODO: This is a HACK that assumes I know what I am doing when using this.
-    public func match(_ object: GraphObject) -> Bool {
+    public func match(_ object: Object) -> Bool {
         match(object as! Link)
     }
 }

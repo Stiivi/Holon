@@ -7,7 +7,7 @@
 
 // TODO: Merge with NodeConstraint
 
-/// Graph constraint for a link.
+/// Holon constraint for a link.
 ///
 public class LinkConstraint: Constraint {
     public let name: String
@@ -25,7 +25,7 @@ public class LinkConstraint: Constraint {
     /// Check the graph for the constraint and return a list of nodes that
     /// violate the constraint
     ///
-    public func check(_ graph: Graph) -> [GraphObject] {
+    public func check(_ graph: Graph) -> [Object] {
         let matched = graph.links.filter { match.match($0) }
         let violating = requirement.check(matched)
         return violating
@@ -40,7 +40,7 @@ public protocol LinkConstraintRequirement {
     ///
     /// - Returns: List of graph objects that cause constraint violation.
     ///
-    func check(_ links: [Link]) -> [GraphObject]
+    func check(_ links: [Link]) -> [Object]
 }
 
 /// Requirement that the link origin, link target and the link itself matches
@@ -67,7 +67,7 @@ public class LinkLabelsRequirement: LinkConstraintRequirement {
         self.linkLabels = target
     }
     
-    public func check(_ links: [Link]) -> [GraphObject] {
+    public func check(_ links: [Link]) -> [Object] {
         let violations: [Link] = links.filter { link in
             if let predicate = originLabels, !predicate.match(link.origin) {
                 return false

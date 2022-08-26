@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Stefan Urbanek on 2021/10/10.
 //
@@ -27,11 +27,12 @@ public typealias LabelSet = Set<String>
 /// All object's attributes are optional. It is up to the user to add
 /// constraints or validations for the attributes of graph objects.
 ///
-open class GraphObject: Identifiable, CustomStringConvertible {
+open class Object: Identifiable, CustomStringConvertible {
     /// Graph the object is associated with.
     ///
     public internal(set) var graph: Graph?
     
+
     /// A set of labels.
     ///
     public internal (set) var labels: LabelSet = []
@@ -45,7 +46,7 @@ open class GraphObject: Identifiable, CustomStringConvertible {
     //    public internal(set) var id: OID?
     
 
-    // TODO: Make this private. Use Graph.create() and Graph.connect()
+    // TODO: Make this private. Use Holon.create() and Holon.connect()
     /// Create an empty object. The object needs to be associated with a graph.
     ///
     public init(id: OID?=nil, labels: LabelSet=[]) {
@@ -101,8 +102,8 @@ open class GraphObject: Identifiable, CustomStringConvertible {
     }
 }
 
-extension GraphObject: Hashable {
-    public static func == (lhs: GraphObject, rhs: GraphObject) -> Bool {
+extension Object: Hashable {
+    public static func == (lhs: Object, rhs: Object) -> Bool {
         lhs.id == rhs.id && lhs.labels == rhs.labels
     }
     

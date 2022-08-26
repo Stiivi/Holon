@@ -1,5 +1,5 @@
 //
-//  Graph.swift
+//  Holon.swift
 //
 //
 //  Created by Stefan Urbanek on 2021/10/5.
@@ -11,22 +11,12 @@
 // IMPORTANT: This is the core structure of this framework. Be very considerate
 //            when adding new functionality. If functionality can be achieved
 //            by using existing functionality, then add it to an extension
-//            (file Graph+Convenience or similar). Optimisation is not
+//            (file Holon+Convenience or similar). Optimisation is not
 //            a reason to add functionality here at this moment.
 // -------------------------------------------------------------------------
 
-// STATUS: Happy
 
-/*
- 
- Design nodes:
- 
- - graph objects are identifiable
- 
- */
-
-
-/// Graph is a mutable structure representing a directed labelled multi-graph.
+/// Holon is a mutable structure representing a directed labelled multi-graph.
 /// The graph is composed of nodes (vertices) and links (edges between
 /// vertices).
 ///
@@ -50,11 +40,20 @@
 /// graph.connect(from: parent, to: leftChild, at: "right")
 /// ```
 ///
-/// - Remark: This is a "domain specific problem environment object", or a
-/// "simulation environment". It is not made a generic as it is not intended
-/// for general purpose use. It does not mean it might not change in the future.
+/// ## Lifetime and Ownership of Nodes and Links
 ///
-public class Graph {
+/// When a node is created, it belongs to the creator until the node
+/// is added to the graph. When a node is added to the graph using
+/// ``Graph/add(_:)-3j4hi`` then the graph becomes owner of the node until the
+/// node is removed from the graph with ``Graph/remove(_:strategy:)``.
+///
+/// Link, when created externally, is owned by the creator. When a link is added
+/// to the graph using ``Graph/add(_:)-af7w`` or a new link is created by
+/// ``Graph/connect(from:to:labels:id:)`` then graph becomes owner of the
+/// link until the link is removed from the graph either with
+/// ``Graph/disconnect(link:)`` or as a by-product of ``Graph/remove(_:strategy:)``.
+///
+public class Graph: HolonProtocol, MutableGraphProtocol {
     // TODO: Rename to GraphWorld?
     
     // MARK: - Instance variables
@@ -65,6 +64,19 @@ public class Graph {
     /// List of links in the graph.
     public private(set) var links: [Link]
     
+    /// List of top-level holons – those holons that have no parent.
+    ///
+    public var holons: [Holon] {
+        nodes.compactMap {
+            if $0.holon == nil {
+                return $0 as? Holon
+            }
+            else {
+                return nil
+            }
+        }
+    }
+
     /// Publisher of graph changes before they are applied. The associated
     /// graph object and the graph are in their original state.
     ///
@@ -127,50 +139,131 @@ public class Graph {
     ///
     ///     - node: Node to be added to the graph.
     ///
+    /// - Precondition: Node must not belong to any graph
     public func add(_ node: Node) {
-        guard !contains(node: node) else {
-            fatalError("Trying to associate already associated node: \(node)")
-        }
-        
+        self.add(node, into: nil)
+    }
+    public func add(_ node: Node, into holon: Holon?=nil) {
+        precondition(node.holon == nil, "Trying to associate already associated node: \(node)")
+
+        // FIXME: Check holon node for cycles
+
+        node.holon = holon
+        node.graph = self
+
         let change = GraphChange.addNode(node)
         willChange(change)
         
         // Associate the node
         nodes.append(node)
-        node.graph = self
         
         didChange(change)
+    }
+    
+    /// Strategy how the holons are removed from the graph.
+    ///
+    public enum HolonRemovalStrategy {
+        /// Remove the holon, its children and related links.
+        ///
+        case remove
+        
+        /// Remove the holon node only and make the holon's children to belong
+        /// to the parent holon of the holon removed.
+        ///
+        case dissolve
     }
     
     /// Removes node from the graph and removes all incoming and outgoing links
     /// for that node.
     ///
-    /// - Returns: List of links that have been disconnected.
+    /// If the node to be removed is a holon, all holon's nodes are removed too.
+    /// A holon owns its nodes.
+    ///
+    /// - Returns: List of links that were disconnected and list of nodes that
+    ///            were removed in addition to the node requested. (The
+    ///            requested node is not included in the returned list)
+    ///
+    /// - Note: The caller becomes owner of the returned nodes and links.
+    ///
+    /// - Precondition: Node must belong to the graph.
     ///
     @discardableResult
-    public func remove(_ node: Node) -> [Link] {
-        guard contains(node: node) else {
-            fatalError("Trying to remove a node that does not belong to the graph")
+    public func remove(_ node: Node, strategy: HolonRemovalStrategy) -> (links: [Link], nodes: [Node]) {
+        precondition(node.graph === self, "Trying to remove a node that does not belong to the graph")
+
+        var removedLinks: [Link] = []
+        var removedNodes: [Node] = []
+        
+        // Remove the holon according to the strategy requested.
+        //
+        if let holon = node as? Holon {
+            switch strategy {
+            case .remove:
+                for child in holon.nodes {
+                    let removed = remove(child, strategy: .remove)
+                    removedLinks += removed.links
+                    removedNodes.append(child)
+                    removedNodes += removed.nodes
+                }
+            case .dissolve:
+                // Re-wire the children to belong to the parent of the removed
+                // holon.
+                for child in holon.nodes {
+                    child.holon = node.holon
+                }
+            }
         }
         
         let change = GraphChange.removeNode(node)
         willChange(change)
         
-        var disconnected: [Link] = []
-        
         // First we remove all the connections
         for link in links {
             if link.origin === node || link.target === node {
-                disconnected.append(link)
+                removedLinks.append(link)
                 rawDisconnect(link)
             }
         }
 
         nodes.removeAll { $0 === node}
+        node.holon = nil
         node.graph = nil
 
         didChange(change)
-        return disconnected
+        return (links: removedLinks, nodes: removedNodes)
+    }
+    
+    /// Removes node from the graph and removes all incoming and outgoing links
+    /// for that node.
+    ///
+    /// If the node to be removed is a holon, all holon's nodes are removed too.
+    /// A holon owns its nodes.
+    ///
+    /// - Returns: List of links that have been disconnected.
+    ///
+    /// - Precondition: Node must belong to the graph.
+    ///
+    /// This method calls ``Graph/remove(_:strategy:)`` with strategy
+    /// being ``Graph/HolonRemovalStrategy/remove``.
+    ///
+    @discardableResult
+    public func remove(_ node: Node) -> (links: [Link], nodes: [Node]) {
+        return remove(node, strategy: .remove)
+    }
+
+    /// Removes the node representing the holon from the graph. All nodes
+    /// that were direct children of this holon will become children of the
+    /// removed holon's parent. The children are "dissolved" in the parent holon.
+    ///
+    /// Only the holon node and its connections are removed from the graph.
+    ///
+    /// This method calls ``Graph/remove(_:strategy:)`` with strategy
+    /// being ``Graph/HolonRemovalStrategy/dissolve``.
+    ///
+    @discardableResult
+    public func dissolve(_ holon: Holon) -> (links: [Link], nodes: [Node]) {
+        return remove(holon, strategy: .dissolve)
+
     }
     
     ///
@@ -187,14 +280,15 @@ public class Graph {
     ///
     /// - Returns: Newly created link
     ///
+    /// - Precondition: Origin and target must be from the same holon
+    ///
     @discardableResult
-    public func connect(from origin: Node, to target: Node, labels: LabelSet=[], id: OID?=nil) -> Link {
-        guard contains(node: origin) else {
-            fatalError("Connecting from an origin from a different graph")
-        }
-        guard contains(node: target) else {
-            fatalError("Connecting to a target from a different graph")
-        }
+    public func connect(from origin: Node,
+                        to target: Node,
+                        labels: LabelSet=[],
+                        id: OID?=nil) -> Link {
+        precondition(origin.graph === self, "Connecting from an origin from a different graph")
+        precondition(target.graph === self, "Connecting to a target from a different graph")
         
         let link = Link(origin: origin, target: target, labels: labels, id: id)
         
@@ -221,12 +315,8 @@ public class Graph {
     ///     - link: Link to be added to the graph.
     ///
     public func add(_ link: Link) {
-        guard link.graph == nil else {
-            fatalError("Trying to associate already associated link: \(link)")
-        }
-        guard !contains(link: link) else {
-            fatalError("Trying to add a link that already exists")
-        }
+        precondition(link.graph == nil,
+                     "Trying to associate already associated link: \(link)")
         
         let change = GraphChange.connect(link)
         willChange(change)
@@ -258,14 +348,8 @@ public class Graph {
     ///     - link: Link to be removed.
     ///
     public func disconnect(link: Link) {
-        guard link.graph === self else {
-            fatalError("Disconnecting a link from a different graph")
-        }
-        
-        guard contains(link: link) else {
-            fatalError("Trying to remove a link that is not part of the graph")
-
-        }
+        precondition(link.graph === self,
+                     "Trying to disconnect an unassociated link or a link from a different graph")
 
         let change = GraphChange.disconnect(link)
         willChange(change)
@@ -394,7 +478,8 @@ public class Graph {
         }
         return links.contains { $0.origin === node || $0.target === node }
     }
-    
+
+
     /// Called when graph is about to be changed.
     func willChange(_ change: GraphChange) {
 //        graphWillChange.send(change)
@@ -404,10 +489,8 @@ public class Graph {
     func didChange(_ change: GraphChange) {
 //        graphDidChange.send(change)
     }
-}
 
 
-extension Graph: CustomStringConvertible {
     public var description: String {
         "Graph(nodes: \(nodes.count), links: \(links.count))"
     }

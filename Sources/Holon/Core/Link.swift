@@ -12,7 +12,7 @@
 /// cases. Despite most of the functionality might be using the orientation,
 /// it does not prevent one to treat the links as non-oriented.
 ///
-public class Link: GraphObject {
+public class Link: Object {
     /// Origin node of the link - a node from which the link points from.
     ///
     public let origin: Node

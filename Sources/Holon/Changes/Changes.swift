@@ -8,8 +8,8 @@
 /// Representation of a change within a graph.
 ///
 /// ``GraphChange`` is used for observation of changes. Instances are being
-/// sent in the observation process through methods such as ``Graph/observe()``,
-/// ``Graph/observeNeighbourhood(node:)`` or ``Graph/observeAttributes(object:)``.
+/// sent in the observation process through methods such as ``Holon/observe()``,
+/// ``Holon/observeNeighbourhood(node:)`` or ``Holon/observeAttributes(object:)``.
 ///
 public enum GraphChange: Equatable {
     /// Denotes a change to a graph when a node was added.
@@ -47,12 +47,12 @@ public enum GraphChange: Equatable {
     /// Denotes a change to a graph object - either a node or a link - where
     /// an attribute was set to a new, non-nil value.
     ///
-//    case setAttribute(GraphObject, AttributeKey, Value)
+//    case setAttribute(Object, AttributeKey, Value)
 
     /// Denotes a change to a graph object - either a node or a link - where
     /// an attribute was removed or set to a `nil` value.
     ///
-//    case unsetAttribute(GraphObject, AttributeKey)
+//    case unsetAttribute(Object, AttributeKey)
     
     /// Returns `true` if the change is related to given object. For node
     /// removal, node addition and attribute changes the object is related
@@ -60,7 +60,7 @@ public enum GraphChange: Equatable {
     /// changes the object is related if the object is the link, origin or
     /// a target of the link.
     ///
-    public func isRelated(_ object: GraphObject) -> Bool {
+    public func isRelated(_ object: Object) -> Bool {
         switch self {
         case let .addNode(node): return node === object
         case let .removeNode(node): return node === object

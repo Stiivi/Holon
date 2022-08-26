@@ -6,11 +6,23 @@
 //
 
 
-// TODO: Node should be in World, not Graph, so we can benefit from the semantics
+// TODO: Node should be in World, not Holon, so we can benefit from the semantics
+
+// Note: Node should not have any graph-mutable methods, neither for
+// convenience. We need the user to understand the flow and potential
+// constraints and effects.
+//
+// The original design (removed in this iteration) had mutation on the node.
 
 /// Object representing a node of a graph.
 ///
-open class Node: GraphObject {
+open class Node: Object {
+    /// Graph the object is associated with.
+    ///
+    public internal(set) var holon: Holon?
+    
+
+    var isProxy: Bool { false }
 
     /// Links outgoing from the node, that is links where the node is the
     /// origin.
@@ -23,7 +35,7 @@ open class Node: GraphObject {
     ///   node.
     ///
     public var outgoing: [Link] {
-        return graph!.outgoing(self)
+        return holon!.outgoing(self)
     }
 
     /// Links incoming to the node, that is links where the node is the target.
@@ -36,7 +48,7 @@ open class Node: GraphObject {
     ///   node.
     ///
     public var incoming: [Link] {
-        return graph!.incoming(self)
+        return holon!.incoming(self)
     }
     
     /// All the links that are associated somewhat with the node.
@@ -44,7 +56,7 @@ open class Node: GraphObject {
     /// It is empty when the node is not associated with a graph.
     ///
     public var neighbours: [Link] {
-        return graph!.neighbours(self)
+        return holon!.neighbours(self)
     }
     
     /// Returns links that match the selector `selector`.
@@ -58,26 +70,4 @@ open class Node: GraphObject {
         
         return links.filter { $0.contains(label: selector.label) }
     }
-    
-    /// Connects the node to a `target` with optional attributes to be set
-    /// on the newly created link.
-    ///
-    /// - Note: Does nothing when the node is not associated with a graph.
-    ///
-    @discardableResult
-    public func connect(to target: Node, labels: LabelSet = []) -> Link {
-        return graph!.connect(from: self, to: target, labels: labels)
-    }
-    
-    /// Flag whether the node has no outgoing links.
-    /// See ``Graph/isSink(_:)`` for more information.
-    public var isSink: Bool  { graph!.isSink(self) }
-
-    /// Flag whether the node has no incoming links.
-    /// See ``Graph/isSource(_:)`` for more information.
-    public var isSource: Bool  { graph!.isSource(self) }
-
-    /// Flag whether the node has no links associated with it.
-    /// See ``Graph/isOrphan(_:)`` for more information.
-    public var isOrphan: Bool  { graph!.isOrphan(self) }
 }

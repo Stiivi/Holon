@@ -15,26 +15,26 @@
  
  */
 
-/// Graph constraint
+/// Holon constraint
 public protocol Constraint {
     var name: String { get }
     /// Checks whether the graph satisfies the constraint. Returns a list of
     /// graph objects that violate the constraint
-    func check(_ graph: Graph) -> [GraphObject]
+    func check(_ graph: Graph) -> [Object]
     
     // TODO: Rename to non-conflicting attribute, like "message"
     var description: String? { get }
 }
 
 public protocol ObjectConstraintRequirement: LinkConstraintRequirement, NodeConstraintRequirement {
-    func check(objects: [GraphObject]) -> [GraphObject]
+    func check(objects: [Object]) -> [Object]
 }
 
 extension ObjectConstraintRequirement {
-    public func check(_ links: [Link]) -> [GraphObject] {
+    public func check(_ links: [Link]) -> [Object] {
         return check(objects: links)
     }
-    public func check(_ nodes: [Node]) -> [GraphObject] {
+    public func check(_ nodes: [Node]) -> [Object] {
         return check(objects: nodes)
     }
 }
@@ -46,7 +46,7 @@ public class RejectAll: ObjectConstraintRequirement {
     public init() {
     }
    
-    public func check(objects: [GraphObject]) -> [GraphObject] {
+    public func check(objects: [Object]) -> [Object] {
         /// We reject whatever comes in
         return objects
     }
@@ -59,7 +59,7 @@ public class AcceptAll: ObjectConstraintRequirement {
     public init() {
     }
    
-    public func check(objects: [GraphObject]) -> [GraphObject] {
+    public func check(objects: [Object]) -> [Object] {
         // We accept everything, therefore we do not return any violations.
         return []
     }
@@ -68,14 +68,14 @@ public class AcceptAll: ObjectConstraintRequirement {
 /// Check all non-nil properties
 public class UniqueProperty<Value>: ObjectConstraintRequirement
         where Value: Hashable {
-    public var extract: (GraphObject) -> Value?
+    public var extract: (Object) -> Value?
     
-    public init(_ extract: @escaping (GraphObject) -> Value?) {
+    public init(_ extract: @escaping (Object) -> Value?) {
         self.extract = extract
     }
     
-    public func check(objects: [GraphObject]) -> [GraphObject] {
-        var seen: [Value:Array<GraphObject>] = [:]
+    public func check(objects: [Object]) -> [Object] {
+        var seen: [Value:Array<Object>] = [:]
         
         for object in objects {
             guard let value = extract(object) else {
@@ -115,7 +115,7 @@ public class ObjectConstraint: Constraint {
     /// Check the graph for the constraint and return a list of nodes that
     /// violate the constraint
     ///
-    public func check(_ graph: Graph) -> [GraphObject] {
+    public func check(_ graph: Graph) -> [Object] {
         let matched = graph.links.filter { match.match($0) }
         let violating = requirement.check(matched)
         return violating

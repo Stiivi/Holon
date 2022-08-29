@@ -439,19 +439,6 @@ public class Graph: MutableGraphProtocol {
         return result
     }
     
-    /// Returns links that are related to the node and that match the given
-    /// link selector.
-    ///
-    public func neighbours(_ node: Node, selector: LinkSelector) -> [Link] {
-        // TODO: Find a better name
-        let links: [Link]
-        switch selector.direction {
-        case .incoming: links = self.incoming(node)
-        case .outgoing: links = self.outgoing(node)
-        }
-        
-        return links.filter { $0.contains(label: selector.label) }
-    }
 
     
     /// Determines whether the node has no outgoing links. That is, if there

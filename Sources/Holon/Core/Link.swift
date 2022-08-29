@@ -61,11 +61,17 @@ public class Link: Object {
     /// - Note: Resolved link can not be used in the same graph
     ///
     public func resolved() -> Link {
-        let link = Link(origin: finalOrigin,
-                        target: finalTarget,
-                        labels: labels,
-                        id: id)
-        return link
+        // TODO: This is slower a bit
+        if isIndirect {
+            let link = Link(origin: finalOrigin,
+                            target: finalTarget,
+                            labels: labels,
+                            id: id)
+            return link
+        }
+        else {
+            return self
+        }
     }
     
     public override var description: String {

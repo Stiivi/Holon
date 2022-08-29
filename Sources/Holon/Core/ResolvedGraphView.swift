@@ -18,7 +18,7 @@ public class ResolvedGraphView: GraphProtocol {
     /// resolved to direct links. Link ID of the resolved link is the same as
     /// the link ID of the indirect link.
     /// 
-    init(_ graph: Graph) {
+    public init(_ graph: Graph) {
         self.graph = graph
     }
 }

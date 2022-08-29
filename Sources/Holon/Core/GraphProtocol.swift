@@ -79,6 +79,12 @@ public protocol GraphProtocol {
     ///
 
     func neighbours(_ node: Node) -> [Link]
+    
+    /// Returns links that are related to the node and that match the given
+    /// link selector.
+    ///
+    func neighbours(_ node: Node, selector: LinkSelector) -> [Link]
+
 }
 
 extension GraphProtocol {
@@ -129,6 +135,17 @@ extension GraphProtocol {
 
         return result
     }
+    public func neighbours(_ node: Node, selector: LinkSelector) -> [Link] {
+        // TODO: Find a better name
+        let links: [Link]
+        switch selector.direction {
+        case .incoming: links = self.incoming(node)
+        case .outgoing: links = self.outgoing(node)
+        }
+        
+        return links.filter { $0.contains(label: selector.label) }
+    }
+
 }
 
 public protocol MutableGraphProtocol: GraphProtocol {

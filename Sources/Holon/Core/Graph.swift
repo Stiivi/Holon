@@ -15,7 +15,6 @@
 //            a reason to add functionality here at this moment.
 // -------------------------------------------------------------------------
 
-
 /// Holon is a mutable structure representing a directed labelled multi-graph.
 /// The graph is composed of nodes (vertices) and links (edges between
 /// vertices).
@@ -53,9 +52,14 @@
 /// link until the link is removed from the graph either with
 /// ``Graph/disconnect(link:)`` or as a by-product of ``Graph/remove(_:strategy:)``.
 ///
-public class Graph: HolonProtocol, MutableGraphProtocol {
+public class Graph: MutableGraphProtocol {
+    // Potential generic parameters:
+    // class Graph<N,L> where N:Identifiable, L:Hashable
+    // typealias Node: N
+    // typealias Label: L
+    // typealias OID: N.ID
+    //
     // TODO: Rename to GraphWorld?
-    
     // MARK: - Instance variables
     
     /// List of nodes in the graph.
@@ -66,7 +70,7 @@ public class Graph: HolonProtocol, MutableGraphProtocol {
     
     /// List of top-level holons – those holons that have no parent.
     ///
-    public var holons: [Holon] {
+    public var topLevelHolons: [Holon] {
         nodes.compactMap {
             if $0.holon == nil {
                 return $0 as? Holon
@@ -77,21 +81,14 @@ public class Graph: HolonProtocol, MutableGraphProtocol {
         }
     }
 
-    /// List of top-level ports of the graph.
+    public var allHolons: [Holon] {
+        nodes.compactMap { $0 as? Holon }
+    }
+
+    /// List of all ports in the graph.
     ///
-    /// The top-level ports of the graph can not be used directly. They are
-    /// a design nodes that can be used if the whole contents of the graph
-    /// becomes a holon.
-    ///
-    public var ports: [Port] {
-        nodes.compactMap {
-            if $0.holon == nil {
-                return $0 as? Port
-            }
-            else {
-                return nil
-            }
-        }
+    public var allPorts: [Port] {
+        nodes.compactMap { return $0 as? Port }
     }
 
     
@@ -112,9 +109,9 @@ public class Graph: HolonProtocol, MutableGraphProtocol {
     /// - Parameters:
     ///   - idGenerator: Generator of unique IDs. Default is ``SequenceIDGenerator``.
     ///
-    public init() {
-        self.nodes = []
-        self.links = []
+    public init(nodes: [Node] = [], links: [Link] = []) {
+        self.nodes = nodes
+        self.links = links
     }
     
     // MARK: - Query
@@ -158,25 +155,10 @@ public class Graph: HolonProtocol, MutableGraphProtocol {
     ///     - node: Node to be added to the graph.
     ///
     /// - Precondition: Node must not belong to any graph.
-    public func add(_ node: Node) {
-        self.add(node, into: nil)
-    }
-
-    /// - Precondition: If node is a port, then its represented node must belong
-    /// to the same holon.
     ///
-    public func add(_ node: Node, into holon: Holon?=nil) {
+    public func add(_ node: Node) {
         precondition(node.graph == nil, "Trying to associate already associated node: \(node)")
         
-        if let port = node as? Port {
-            precondition(port.representedNode.graph === self,
-                         "Trying to add a port with represented node from another graph")
-            precondition(port.representedNode.holon === holon
-                         || (port.representedNode is Port && port.representedNode.holon!.holon === holon),
-                         "Port's represented node must belong to the same holon or be a port of a a child holon")
-        }
-        
-        node.holon = holon
         node.graph = self
 
         let change = GraphChange.addNode(node)
@@ -186,19 +168,6 @@ public class Graph: HolonProtocol, MutableGraphProtocol {
         nodes.append(node)
         
         didChange(change)
-    }
-    
-    /// Strategy how the holons are removed from the graph.
-    ///
-    public enum HolonRemovalStrategy {
-        /// Remove the holon, its children and related links.
-        ///
-        case remove
-        
-        /// Remove the holon node only and make the holon's children to belong
-        /// to the parent holon of the holon removed.
-        ///
-        case dissolve
     }
     
     /// Removes node from the graph and removes all incoming and outgoing links
@@ -216,31 +185,12 @@ public class Graph: HolonProtocol, MutableGraphProtocol {
     /// - Precondition: Node must belong to the graph.
     ///
     @discardableResult
-    public func remove(_ node: Node, strategy: HolonRemovalStrategy) -> (links: [Link], nodes: [Node]) {
+    public func remove(_ node: Node) -> [Link] {
         precondition(node.graph === self, "Trying to remove a node that does not belong to the graph")
+        // FIXME: This is getting complicated
+        // FIXME: What about ports?
 
-        var removedLinks: [Link] = []
-        var removedNodes: [Node] = []
-        
-        // Remove the holon according to the strategy requested.
-        //
-        if let holon = node as? Holon {
-            switch strategy {
-            case .remove:
-                for child in holon.nodes {
-                    let removed = remove(child, strategy: .remove)
-                    removedLinks += removed.links
-                    removedNodes.append(child)
-                    removedNodes += removed.nodes
-                }
-            case .dissolve:
-                // Re-wire the children to belong to the parent of the removed
-                // holon.
-                for child in holon.nodes {
-                    child.holon = node.holon
-                }
-            }
-        }
+        var disconnected: [Link] = []
         
         let change = GraphChange.removeNode(node)
         willChange(change)
@@ -248,7 +198,7 @@ public class Graph: HolonProtocol, MutableGraphProtocol {
         // First we remove all the connections
         for link in links {
             if link.origin === node || link.target === node {
-                removedLinks.append(link)
+                disconnected.append(link)
                 rawDisconnect(link)
             }
         }
@@ -258,39 +208,55 @@ public class Graph: HolonProtocol, MutableGraphProtocol {
         node.graph = nil
 
         didChange(change)
-        return (links: removedLinks, nodes: removedNodes)
+        return disconnected
     }
     
-    /// Removes node from the graph and removes all incoming and outgoing links
-    /// for that node.
-    ///
-    /// If the node to be removed is a holon, all holon's nodes are removed too.
-    /// A holon owns its nodes.
-    ///
-    /// - Returns: List of links that have been disconnected.
-    ///
-    /// - Precondition: Node must belong to the graph.
-    ///
-    /// This method calls ``Graph/remove(_:strategy:)`` with strategy
-    /// being ``Graph/HolonRemovalStrategy/remove``.
-    ///
+    
     @discardableResult
-    public func remove(_ node: Node) -> (links: [Link], nodes: [Node]) {
-        return remove(node, strategy: .remove)
+    public func remove(holon: Holon) -> (links: [Link], nodes: [Node]) {
+        var removedLinks: [Link] = []
+        var removedNodes: [Node] = []
+
+        // Re-wire the parent of holon's children.
+        for child in holon.nodes {
+            let removed: (links: [Link], nodes: [Node])
+            
+            if let childHolon = child as? Holon {
+                removed = remove(holon: childHolon)
+            }
+            else {
+                removed = (links: remove(child), nodes: [])
+            }
+            
+            removedLinks += removed.links
+            removedNodes.append(child)
+            removedNodes += removed.nodes
+        }
+
+        removedLinks += remove(holon)
+        
+        return (links: removedLinks, nodes: removedNodes)
+
     }
 
     /// Removes the node representing the holon from the graph. All nodes
     /// that were direct children of this holon will become children of the
-    /// removed holon's parent. The children are "dissolved" in the parent holon.
+    /// removed holon's parent. The children are "dissolved" in the parent
+    /// holon.
     ///
-    /// Only the holon node and its connections are removed from the graph.
+    /// All the links connected to the removed holon are removed as well. It is
+    /// up to the caller to create new links.
     ///
-    /// This method calls ``Graph/remove(_:strategy:)`` with strategy
-    /// being ``Graph/HolonRemovalStrategy/dissolve``.
+    /// This method calls ``Graph/remove(_:)``.
     ///
     @discardableResult
-    public func dissolve(_ holon: Holon) -> (links: [Link], nodes: [Node]) {
-        return remove(holon, strategy: .dissolve)
+    public func dissolve(_ holon: Holon) -> [Link] {
+        // Re-wire the parent of holon's children.
+        for child in holon.nodes {
+            child.holon = holon.holon
+        }
+                
+        return remove(holon)
 
     }
     
@@ -334,46 +300,11 @@ public class Graph: HolonProtocol, MutableGraphProtocol {
     public func connect(from origin: Node,
                         to target: Node,
                         labels: LabelSet=[],
-                        id: OID?=nil,
-                        follow: Bool) -> Link {
+                        id: OID?=nil) -> Link {
         precondition(origin.graph === self, "Connecting from an origin from a different graph")
         precondition(target.graph === self, "Connecting to a target from a different graph")
         
-        let finalOrigin: Node
-        let finalTarget: Node
-        
-        if follow {
-            if let origin = origin as? Port, !(target is Port) {
-                precondition(origin.holon!.holon === target.holon)
-                finalOrigin = origin.finalNode
-                finalTarget = target
-            }
-            else if let target = target as? Port, !(origin is Port) {
-                precondition(origin.holon === target.holon!.holon)
-                finalOrigin = origin
-                finalTarget = target.finalNode
-            }
-            else if let origin = origin as? Port, let target = target as? Port {
-                precondition(origin.holon === target.holon)
-                finalOrigin = origin.finalNode
-                finalTarget = target.finalNode
-            }
-            else {
-                finalOrigin = origin
-                finalTarget = target
-            }
-        }
-        else {
-            // We can connect only nodes from within the same holon
-            // or from the parent to the child
-            precondition(origin.holon === target.holon
-                         || origin.holon === target
-                         || origin === target.holon)
-            finalOrigin = origin
-            finalTarget = target
-        }
-        
-        let link = Link(origin: finalOrigin, target: finalTarget, labels: labels, id: id)
+        let link = Link(origin: origin, target: target, labels: labels, id: id)
         
         let change = GraphChange.connect(link)
         willChange(change)
@@ -383,13 +314,6 @@ public class Graph: HolonProtocol, MutableGraphProtocol {
         didChange(change)
         
         return link
-    }
-    @discardableResult
-    public func connect(from origin: Node,
-                        to target: Node,
-                        labels: LabelSet=[],
-                        id: OID?=nil) -> Link {
-        return connect(from: origin, to: target, labels: labels, id: id, follow: false)
     }
 
     /// Adds a custom-created link to the graph.

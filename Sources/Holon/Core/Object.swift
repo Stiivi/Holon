@@ -28,6 +28,9 @@ public typealias LabelSet = Set<String>
 /// constraints or validations for the attributes of graph objects.
 ///
 open class Object: Identifiable, CustomStringConvertible {
+    
+    // TODO: Lifetime: static, dynamic, ephemeral
+    
     /// Graph the object is associated with.
     ///
     public internal(set) var graph: Graph?

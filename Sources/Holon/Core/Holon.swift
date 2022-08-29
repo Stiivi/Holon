@@ -31,6 +31,18 @@ public extension HolonProtocol {
 
 /// A special node representing a hierarchical entity within the graph.
 ///
+/// The concept of holon is described as follows:
+///
+/// - holon is a sub-graph defined by nodes that belong to the holon
+/// - holons owns all children nodes
+/// - holons are organised in a tree structure: a holon has child holons
+///   and might have a parent
+/// - holons do not share nodes
+/// - holon is a regular node in a graph and connections to/from a holon
+///   can be formed
+/// - when a holon is removed from a graph, all its children nodes are
+///   removed as well, including child holons and their nodes
+///
 public class Holon: Node, HolonProtocol, MutableGraphProtocol {
     
     /// List of nodes that belong to the holon directly. The list excludes all
@@ -80,8 +92,20 @@ public class Holon: Node, HolonProtocol, MutableGraphProtocol {
     ///
     /// A node is added to the graph and marked as belonging to this holon.
     ///
+    /// - Precondition: If node is a port, then its represented node must belong
+    /// to the same holon.
+    ///
     public func add(_ node: Node) {
-        graph!.add(node, into: self)
+        if let port = node as? Port {
+            precondition(port.representedNode.graph === self.graph,
+                         "Trying to add a port with represented node from another graph")
+            precondition(port.representedNode.holon === self
+                         || (port.representedNode is Port && port.representedNode.holon!.holon === self),
+                         "Port's represented node must belong to the same holon or be a port of a a child holon")
+        }
+
+        graph!.add(node)
+        node.holon = self
     }
     
     /// Remove a node from the holon and from the owning graph.
@@ -90,9 +114,13 @@ public class Holon: Node, HolonProtocol, MutableGraphProtocol {
     ///
     /// - Precondition: Node must belong to the holon.
     ///
-    public func remove(_ node: Node) -> (links: [Link], nodes: [Node]) {
+    public func remove(_ node: Node) -> [Link] {
         precondition(node.holon === self, "Trying to remove a node of another holon")
         return graph!.remove(node)
+    }
+    
+    public func removeFromParent() {
+        // return removed links and nodes
     }
     
     /// Connects two nodes within the holon. Both nodes must belong to the same

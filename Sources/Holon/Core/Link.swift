@@ -20,12 +20,54 @@ public class Link: Object {
     ///
     public let target: Node
     
+    public var isIndirect: Bool {
+        return origin is Port || target is Port
+    }
+    
+    public var finalOrigin: Node {
+        if let port = origin as? Port {
+            return port.finalNode
+        }
+        else {
+            return origin
+        }
+    }
+    
+    public var finalTarget: Node {
+        if let port = target as? Port {
+            return port.finalNode
+        }
+        else {
+            return target
+        }
+    }
+
     init(origin: Node, target: Node, labels: LabelSet=[], id: OID? = nil) {
         self.origin = origin
         self.target = target
         super.init(id: id, labels: labels)
     }
 
+    
+    /// Create an unassociated link object where the origin and target are final
+    /// origin and final target of this link.
+    ///
+    /// Newly created link can not be associated with the same graph as the
+    /// original link, because the IDs within a graph must be unique.
+    ///
+    /// Resolved link and the original link share the same identity because
+    /// logically they represent the same link.
+    ///
+    /// - Note: Resolved link can not be used in the same graph
+    ///
+    public func resolved() -> Link {
+        let link = Link(origin: finalOrigin,
+                        target: finalTarget,
+                        labels: labels,
+                        id: id)
+        return link
+    }
+    
     public override var description: String {
         let idString = id.map { String($0) } ?? "nil"
         let originIdString = origin.id.map { String($0) } ?? "nil"

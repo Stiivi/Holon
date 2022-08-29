@@ -26,6 +26,7 @@ public protocol GraphProtocol {
     /// - Note: Link comparison is based on its identity.
     ///
     func contains(link: Link) -> Bool
+
     /// Get a list of outgoing links from a node.
     ///
     /// - Parameters:
@@ -42,6 +43,16 @@ public protocol GraphProtocol {
     ///   node.
     ///
     func outgoing(_ origin: Node) -> [Link]
+    
+    /// Get a node by ID.
+    ///
+    func node(_ id: Object.ID) -> Node?
+
+    /// Get a link by ID.
+    ///
+    func link(_ id: Object.ID) -> Link?
+
+    
     /// Get a list of links incoming to a node.
     ///
     /// - Parameters:
@@ -57,6 +68,7 @@ public protocol GraphProtocol {
     ///   result in duplicates for links that are loops to and from the same
     ///   node.
     ///
+
     func incoming(_ target: Node) -> [Link]
     /// Get a list of links that are related to the neighbours of the node. That
     /// is, list of links where the node is either an origin or a target.
@@ -77,6 +89,19 @@ extension GraphProtocol {
     public func contains(link: Link) -> Bool {
         return links.contains { $0 === link }
     }
+    
+    /// Get a node by ID.
+    ///
+    public func node(_ id: Object.ID) -> Node? {
+        return nodes.first { $0.id == id }
+    }
+
+    /// Get a link by ID.
+    ///
+    public func link(_ id: Object.ID) -> Link? {
+        return links.first { $0.id == id }
+    }
+
     public func outgoing(_ origin: Node) -> [Link] {
         let result: [Link]
         
@@ -108,7 +133,7 @@ extension GraphProtocol {
 
 public protocol MutableGraphProtocol: GraphProtocol {
     func add(_ node: Node)
-    func remove(_ node: Node) -> (links: [Link], nodes: [Node])
+    func remove(_ node: Node) -> [Link]
     func connect(from origin: Node, to target: Node, labels: LabelSet, id: OID?) -> Link
     func disconnect(link: Link)
 }

@@ -12,6 +12,9 @@
 /// ``Holon/observeNeighbourhood(node:)`` or ``Holon/observeAttributes(object:)``.
 ///
 public enum GraphChange: Equatable {
+    // TODO: Add case holonMoved(Holon, to: Holon)
+    
+    
     /// Denotes a change to a graph when a node was added.
     ///
     case addNode(Node)

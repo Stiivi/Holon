@@ -5,7 +5,6 @@
 //  Created by Stefan Urbanek on 2021/10/20.
 //
 
-
 // TODO: Node should be in World, not Holon, so we can benefit from the semantics
 
 // Note: Node should not have any graph-mutable methods, neither for

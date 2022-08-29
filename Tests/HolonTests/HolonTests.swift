@@ -8,10 +8,10 @@ final class HolonTests: XCTestCase {
         let holon = Holon()
         graph.add(holon)
         
-        XCTAssertEqual(graph.holons.count, 1)
+        XCTAssertEqual(graph.topLevelHolons.count, 1)
         XCTAssertEqual(graph.allHolons.count, 1)
         
-        if let first = graph.holons.first {
+        if let first = graph.topLevelHolons.first {
             XCTAssertIdentical(first, holon)
         }
         else {
@@ -28,8 +28,8 @@ final class HolonTests: XCTestCase {
         
         XCTAssertEqual(graph.allHolons.count, 2)
         
-        XCTAssertEqual(graph.holons.count, 1)
-        if let first = graph.holons.first {
+        XCTAssertEqual(graph.topLevelHolons.count, 1)
+        if let first = graph.topLevelHolons.first {
             XCTAssertIdentical(first, outer)
         }
         else {
@@ -59,7 +59,7 @@ final class HolonTests: XCTestCase {
         outer.add(outerNode)
         inner.add(innerNode)
         
-        let removed = graph.remove(outer)
+        let removed = graph.remove(holon: outer)
         
         XCTAssertEqual(removed.links.count, 0)
         XCTAssertEqual(removed.nodes.count, 3)
@@ -90,8 +90,7 @@ final class HolonTests: XCTestCase {
         XCTAssertIdentical(outerNode.holon, outer)
         
         let removed = graph.dissolve(outer)
-        XCTAssertEqual(removed.links.count, 0)
-        XCTAssertEqual(removed.nodes.count, 0)
+        XCTAssertEqual(removed.count, 0)
         
         XCTAssertNil(outer.graph)
         XCTAssertNil(outer.holon)
@@ -131,7 +130,9 @@ final class HolonTests: XCTestCase {
         inner.add(innerNode)
         inner.add(port)
         
-        let link = graph.connect(from: outerNode, to: port, follow: true)
+        let indirectLink = graph.connect(from: outerNode, to: port)
+        let resolved = ResolvedGraphView(graph)
+        let link = resolved.link(indirectLink.id)!
         XCTAssertIdentical(link.origin, outerNode)
         XCTAssertIdentical(link.target, innerNode)
     }
@@ -156,12 +157,15 @@ final class HolonTests: XCTestCase {
         
         outer.add(outerPort)
 
-        let link = graph.connect(from: node, to: outerPort, follow: true)
+        let indirectLink = graph.connect(from: node, to: outerPort)
+        let resolved = ResolvedGraphView(graph)
+        let link = resolved.link(indirectLink.id)!
         XCTAssertIdentical(link.origin, node)
         XCTAssertIdentical(link.target, innerNode)
     }
     /// When a port is removed, connection through that port must be removed too
     func testPortRemoveConnection() throws {
+//        throw XCTSkip("Port removal is not yet implemented")
         let inner = Holon()
         graph.add(inner)
         
@@ -173,16 +177,21 @@ final class HolonTests: XCTestCase {
         inner.add(innerNode)
         inner.add(port)
         
-        let link = graph.connect(from: outerNode, to: port, follow: true)
+        let indirectLink = graph.connect(from: outerNode, to: port)
+        let resolved = ResolvedGraphView(graph)
 
         let removed = graph.remove(port)
 
-        if let removedLink = removed.links.first {
-            XCTAssertIdentical(link, removedLink)
+        if let removedLink = removed.first {
+            XCTAssertIdentical(indirectLink, removedLink)
         }
         else {
             XCTFail("Expected the link through port to be removed")
         }
+
+        let link = resolved.link(indirectLink.id)
+        XCTAssertNil(link)
+
     }
 
 }

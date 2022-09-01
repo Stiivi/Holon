@@ -16,18 +16,6 @@
 /// Object representing a node of a graph.
 ///
 open class Node: Object {
-    //    let internalKind: InternalKind
-    //
-    //    var isPort: Bool { internalKind == .port }
-    //    var isHolon: Bool { internalKind == .holon }
-    var isHolon: Bool { self is Holon }
-    
-    
-    /// Graph the object is associated with.
-    ///
-    public internal(set) var holon: Holon?
-    
-    
     /// Links outgoing from the node, that is links where the node is the
     /// origin.
     ///

@@ -6,10 +6,24 @@
 //
 
 
+/// Protocol for a Holon - a hierarchical structure.
+///
 public protocol HolonProtocol: GraphProtocol {
-    var holons: [Holon] { get }
-    var allHolons: [Holon] { get }
+    /// List of child holons that belong to the receiver.
+    ///
+    var childHolons: [Node] { get }
+
+    /// List of all holons that belong to the receiver, including holons
+    /// of the children.
+    ///
+    var allHolons: [Node] { get }
+
+    /// List of direct ports of the holon.
+    ///
     var ports: [Node] { get }
+
+    /// List of all ports of the holon.
+    ///
     var allPorts: [Node] { get }
 }
 
@@ -17,8 +31,8 @@ public extension HolonProtocol {
     /// List of all holons, including nested one, that are contained in the
     /// graph.
     ///
-    var allHolons: [Holon] {
-        nodes.compactMap { $0 as? Holon }
+    var allHolons: [Node] {
+        nodes.filter { $0.isHolon }
     }
 
     /// List of all ports, including nested one, that are contained in the
@@ -26,6 +40,33 @@ public extension HolonProtocol {
     ///
     var allPorts: [Node] {
         nodes.filter { $0.isProxy }
+    }
+}
+
+extension Node {
+    /// Flag whether the node is a holon.
+    var isHolon: Bool { contains(label: Node.HolonLabel) }
+    
+    /// Link between the node and holon that owns the node.
+    ///
+    public var holonLink: Link? {
+        if graph == nil {
+            return nil
+        }
+        else {
+            return outgoing.first { $0.isHolonLink }
+        }
+    }
+    
+    /// Holon the node is associated with.
+    ///
+    public var holon: Node? {
+        if graph == nil {
+            return nil
+        }
+        else {
+            return holonLink?.target
+        }
     }
 }
 
@@ -43,12 +84,8 @@ public extension HolonProtocol {
 /// - when a holon is removed from a graph, all its children nodes are
 ///   removed as well, including child holons and their nodes
 ///
-public class Holon: Node, HolonProtocol, MutableGraphProtocol {
+extension Node: HolonProtocol, MutableGraphProtocol {
     public static let HolonLabel = "%holon"
-
-    override public init(id: OID?=nil, labels: LabelSet=LabelSet()) {
-        super.init(id: id, labels: labels.union([Holon.HolonLabel]))
-    }
 
     /// List of nodes that belong to the holon directly. The list excludes all
     /// nodes that belong to the children holons.
@@ -69,31 +106,33 @@ public class Holon: Node, HolonProtocol, MutableGraphProtocol {
         }
     }
     
-    /// List of top-level holons – those holons that have no parent.
+    /// List of holons that are direct children of this holon.
     ///
-    public var holons: [Holon] {
-        nodes.compactMap {
-            if $0.holon == self {
-                return $0 as? Holon
-            }
-            else {
-                return nil
-            }
-        }
+    public var childHolons: [Node] {
+        // TODO: Rename to child holons
+        incoming.filter { $0.isHolonLink }
+            .map { $0.origin }
     }
     
     public var ports: [Node] {
-        nodes.filter { $0.holon === self }
+        childHolons.filter { $0.isProxy }
     }
 
-    /// Add a node to the holon.
+    /// Add an unassociated node to the holon.
     ///
-    /// A node is added to the graph and marked as belonging to this holon.
+    /// Node is associated with the the graph and then connected with the holon.
     ///
-    /// - Precondition: If node is a port, then its represented node must belong
-    /// to the same holon.
+    /// - Precondition: Node must not be associated with a graph.
+    ///
+    /// - Note: Reason why this method does not allow adding nodes already
+    ///   associated with a graph is, that they might be connected to other
+    ///   nodes and we can not guarantee that making them part of the holon
+    ///   would not violate any restrictions that might be imposed on the nodes.
+    ///   Therefore it is safe, and as a side-effect faster, to allow only
+    ///   unassociated nodes to be added to the holon.
     ///
     public func add(_ node: Node) {
+        precondition(graph != nil, "Trying to add a node to an unassociated holon")
         // FIXME: Re-add the preconditions
         //        if let port = node as? Proxy {
 ////            precondition(port.representedNode.graph === self.graph,
@@ -105,7 +144,7 @@ public class Holon: Node, HolonProtocol, MutableGraphProtocol {
 //        }
 //
         graph!.add(node)
-        node.holon = self
+        graph!.connect(node: node, holon: self)
     }
     
     /// Remove a node from the holon and from the owning graph.
@@ -115,16 +154,18 @@ public class Holon: Node, HolonProtocol, MutableGraphProtocol {
     /// - Precondition: Node must belong to the holon.
     ///
     public func remove(_ node: Node) -> [Link] {
+        precondition(graph != nil, "Trying to remove a node from an unassociated holon")
         precondition(node.holon === self, "Trying to remove a node of another holon")
         return graph!.remove(node)
     }
     
-    public func removeFromParent() {
-        // return removed links and nodes
-    }
-    
     /// Connects two nodes within the holon. Both nodes must belong to the same
     /// holon.
+    ///
+    /// This is a safe way of connecting two nodes within a holon.
+    ///
+    /// - Precondition: Both origin and target holon must be the same as the
+    ///   receiver holon.
     ///
     public func connect(from origin: Node, to target: Node, labels: LabelSet, id: OID?) -> Link {
         precondition(origin.holon === self, "Trying to connect a node (as origin) that belongs to another holon")

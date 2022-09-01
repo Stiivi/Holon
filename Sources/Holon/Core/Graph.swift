@@ -70,20 +70,9 @@ public class Graph: MutableGraphProtocol {
     
     /// List of top-level holons – those holons that have no parent.
     ///
-    public var topLevelHolons: [Holon] {
-        nodes.compactMap {
-            if $0.holon == nil {
-                return $0 as? Holon
-            }
-            else {
-                return nil
-            }
-        }
-    }
+    public var topLevelHolons: [Node] { nodes.filter { $0.holon == nil } }
 
-    public var allHolons: [Holon] {
-        nodes.compactMap { $0 as? Holon }
-    }
+    public var allHolons: [Node] { nodes.filter { $0.isHolon } }
 
     /// Publisher of graph changes before they are applied. The associated
     /// graph object and the graph are in their original state.
@@ -166,8 +155,8 @@ public class Graph: MutableGraphProtocol {
     /// Removes node from the graph and removes all incoming and outgoing links
     /// for that node.
     ///
-    /// If the node to be removed is a holon, all holon's nodes are removed too.
-    /// A holon owns its nodes.
+    /// If the node to be removed is a holon, all holon's children will become
+    /// top-level nodes in the holon hierarchy.
     ///
     /// - Returns: List of links that were disconnected and list of nodes that
     ///            were removed in addition to the node requested. (The
@@ -187,15 +176,7 @@ public class Graph: MutableGraphProtocol {
         
         let change = GraphChange.removeNode(node)
         willChange(change)
-        
-        if let holon = node as? Holon {
-            // Dissolve the holon - make it's children belong to the holon's
-            // parent
-            for child in holon.nodes {
-                child.holon = holon.holon
-            }
-        }
-        
+
         // First we remove all the connections
         for link in links {
             if link.origin === node || link.target === node {
@@ -205,41 +186,12 @@ public class Graph: MutableGraphProtocol {
         }
 
         nodes.removeAll { $0 === node}
-        node.holon = nil
         node.graph = nil
 
         didChange(change)
         return disconnected
     }
     
-    
-    @discardableResult
-    public func remove(holon: Holon) -> (links: [Link], nodes: [Node]) {
-        var removedLinks: [Link] = []
-        var removedNodes: [Node] = []
-
-        // Re-wire the parent of holon's children.
-        for child in holon.nodes {
-            let removed: (links: [Link], nodes: [Node])
-            
-            if let childHolon = child as? Holon {
-                removed = remove(holon: childHolon)
-            }
-            else {
-                removed = (links: remove(child), nodes: [])
-            }
-            
-            removedLinks += removed.links
-            removedNodes.append(child)
-            removedNodes += removed.nodes
-        }
-
-        removedLinks += remove(holon)
-        
-        return (links: removedLinks, nodes: removedNodes)
-
-    }
-
     
     ///
     /// The link name does not have to be unique and there might be multiple

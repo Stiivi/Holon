@@ -33,7 +33,7 @@ extension Node {
             switch self {
             case .`default`: return nil
             case .proxy: return Node.ProxyLabel
-            case .holon: return Holon.HolonLabel
+            case .holon: return Node.HolonLabel
             }
         }
     }
@@ -53,14 +53,14 @@ extension Node {
     /// Link that is a representation of the proxy node.
     ///
     /// Representation link is an outgoing link from the proxy node
-    /// which has a label ``Link/RepresentsLabel``.
+    /// which has a label ``Link/Subject``.
     ///
     public var subjectLink: Link? { outgoing.first { $0.isSubject } }
     
     /// A node that the port represents. Must be from the same holon as the
     /// referencing port.
     ///
-    public var subject: Node? { return subjectLink?.target }
+    public var subject: Node? { subjectLink?.target }
     
 }
 

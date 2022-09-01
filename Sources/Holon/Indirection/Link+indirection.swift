@@ -10,7 +10,6 @@
 extension Link {
     public static let IndirectTargetLabel = "%indirect-target"
     public static let IndirectOriginLabel = "%indirect-origin"
-    public static let HolonLinkLabel = "%holon"
     
     /// Label for links from a proxy node to potentially real node.
     /// Links with this label are expected to have a proxy node as origin.

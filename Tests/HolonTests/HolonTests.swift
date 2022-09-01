@@ -5,7 +5,7 @@ final class HolonTests: XCTestCase {
     let graph = Graph()
     
     func testGetHolons() throws {
-        let holon = Holon()
+        let holon = Node(role: .holon)
         graph.add(holon)
         
         XCTAssertEqual(graph.topLevelHolons.count, 1)
@@ -20,8 +20,8 @@ final class HolonTests: XCTestCase {
     }
     
     func testGetChildren() throws {
-        let outer = Holon()
-        let inner = Holon()
+        let outer = Node(role: .holon)
+        let inner = Node(role: .holon)
         
         graph.add(outer)
         outer.add(inner)
@@ -37,20 +37,20 @@ final class HolonTests: XCTestCase {
         }
         
         XCTAssertEqual(outer.allHolons.count, 1)
-        XCTAssertEqual(outer.holons.count, 1)
-        if let first = outer.holons.first {
+        XCTAssertEqual(outer.childHolons.count, 1)
+        if let first = outer.childHolons.first {
             XCTAssertIdentical(first, inner)
         }
         else {
             XCTFail("Outer should own only the inner holon")
         }
         
-        XCTAssertEqual(inner.holons.count, 0)
+        XCTAssertEqual(inner.childHolons.count, 0)
     }
     
     func testRemoveHolon() throws {
-        let outer = Holon()
-        let inner = Holon()
+        let outer = Node(role: .holon)
+        let inner = Node(role: .holon)
         let outerNode = Node()
         let innerNode = Node()
         
@@ -59,9 +59,9 @@ final class HolonTests: XCTestCase {
         outer.add(outerNode)
         inner.add(innerNode)
         
-        let removed = graph.remove(holon: outer)
+        let removed = graph.removeHolon(outer)
         
-        XCTAssertEqual(removed.links.count, 0)
+        XCTAssertEqual(removed.links.count, 3)
         XCTAssertEqual(removed.nodes.count, 3)
         
         XCTAssertNil(outer.graph)
@@ -74,40 +74,47 @@ final class HolonTests: XCTestCase {
         XCTAssertNil(innerNode.holon)
     }
     
-//    func testDissolveHolon() throws {
-//        let outer = Holon()
-//        let inner = Holon()
-//        let outerNode = Node()
-//        let innerNode = Node()
-//
-//        graph.add(outer)
-//        outer.add(inner)
-//        outer.add(outerNode)
-//        inner.add(innerNode)
-//
-//        XCTAssertIdentical(inner.holon, outer)
-//        XCTAssertIdentical(innerNode.holon, inner)
-//        XCTAssertIdentical(outerNode.holon, outer)
-//
-//        let removed = graph.dissolve(outer)
-//        XCTAssertEqual(removed.count, 0)
-//
-//        XCTAssertNil(outer.graph)
-//        XCTAssertNil(outer.holon)
-//
-//        XCTAssertIdentical(outerNode.graph, graph)
-//        XCTAssertNil(outer.holon)
-//
-//        XCTAssertIdentical(inner.graph, graph)
-//        XCTAssertNil(inner.holon)
-//
-//        XCTAssertIdentical(innerNode.graph, graph)
-//        XCTAssertIdentical(innerNode.holon, inner)
-//    }
+    func testDissolveHolon() throws {
+        // Graph:
+        //
+        // outer(h) -h-> inner(h) -h-> inner
+        //          -h-> outer
+        //
+        
+        let outer = Node(role: .holon)
+        let inner = Node(role: .holon)
+        let outerNode = Node()
+        let innerNode = Node()
+
+        graph.add(outer)
+        outer.add(inner)
+        outer.add(outerNode)
+        inner.add(innerNode)
+
+        XCTAssertIdentical(inner.holon, outer)
+        XCTAssertIdentical(innerNode.holon, inner)
+        XCTAssertIdentical(outerNode.holon, outer)
+
+        let (removed, created) = graph.dissolveHolon(outer)
+        XCTAssertEqual(removed.count, 0)
+        XCTAssertEqual(created.count, 0)
+
+        XCTAssertNil(outer.graph)
+        XCTAssertNil(outer.holon)
+
+        XCTAssertIdentical(outerNode.graph, graph)
+        XCTAssertNil(outer.holon)
+
+        XCTAssertIdentical(inner.graph, graph)
+        XCTAssertNil(inner.holon)
+
+        XCTAssertIdentical(innerNode.graph, graph)
+        XCTAssertIdentical(innerNode.holon, inner)
+    }
     
     func testOwnership() throws {
-        let outer = Holon()
-        let inner = Holon()
+        let outer = Node(role: .holon)
+        let inner = Node(role: .holon)
         let node = Node()
         
         graph.add(outer)

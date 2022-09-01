@@ -7,14 +7,39 @@
 
 // TODO: Merge with NodeConstraint
 
-/// Holon constraint for a link.
+/// An object representing constraint that checks links.
 ///
 public class LinkConstraint: Constraint {
+    /// Name of the constraint.
+    ///
+    /// See ``Constraint/name`` for more information.
     public let name: String
+    
+    /// Human readable description of the constraint. See ``Constraint/description``.
+    ///
     public let description: String?
+
+    /// A predicate that matches all links to be considered for this constraint.
+    ///
+    /// See ``LinkPredicate`` for more information.
+    ///
     public let match: LinkPredicate
+    
+    /// A requirement that needs to be satisfied for the matched links.
+    ///
     public let requirement: LinkConstraintRequirement
     
+    /// Creates a link constraint.
+    ///
+    /// - Properties:
+    ///
+    ///     - name: Constraint name
+    ///     - description: Constraint description
+    ///     - match: a link predicate that matches links to be considered for
+    ///       this constraint
+    ///     - requirement: a requirement that needs to be satisfied by the
+    ///       matched links.
+    ///
     public init(name: String, description: String? = nil, match: LinkPredicate, requirement: LinkConstraintRequirement) {
         self.name = name
         self.description = description
@@ -51,10 +76,25 @@ public class LinkLabelsRequirement: LinkConstraintRequirement {
     // TODO: Use CompoundPredicate
     // FIXME: I do not like this class
     
-    let originLabels: LabelPredicate?
-    let targetLabels: LabelPredicate?
-    let linkLabels: LabelPredicate?
+    /// Labels to be matched on the link's origin, if provided.
+    public let originLabels: LabelPredicate?
+    
+    /// Labels to be matched on the link's target, if provided.
+    public let targetLabels: LabelPredicate?
+    
+    /// Labels to be matched on the link itself, if provided.
+    public let linkLabels: LabelPredicate?
 
+    /// Creates a constraint requirement for links that tests for labels on
+    /// link's origin, target and/or the link itself. At least one of the
+    /// parameters needs to be specified.
+    ///
+    /// - Parameters:
+    ///
+    ///     - origin: Predicate that matches labels on the link's origin
+    ///     - target: Predicate that matches labels on the link's target
+    ///     - link: Predicate that matches labels on the link itself
+    ///
     public init(origin: LabelPredicate? = nil,
                 target: LabelPredicate? = nil,
                 link: LabelPredicate? = nil) {

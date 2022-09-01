@@ -70,8 +70,8 @@ public struct LinkSelector {
     }
 
     /// Returns endpoint of the link based on the direction. Returns link's
-    /// origin if the direction is ``LinkDirection.incoming`` or returns link's target if the
-    /// direction is ``LinkDirection.outgoing``.
+    /// origin if the direction is ``LinkDirection/incoming`` or returns link's target if the
+    /// direction is ``LinkDirection/outgoing``.
     ///
     public func endpoint(_ link: Link) -> Node {
         switch direction {

@@ -9,12 +9,14 @@
 /// An object representing a sequence of links.
 ///
 public class Path {
-    public internal(set) var links: [Link]
     
+    /// List of links that represent the path.
+    public internal(set) var links: [Link]
     
     /// Creates a path from a list of links.
     ///
     /// - Precondition: Links must be not empty
+    /// - Precondition: Path must be valid. See ``Path/isValid(_:)``.
     ///
     public init(_ links: [Link]) {
         precondition(links.count > 0)
@@ -42,7 +44,10 @@ public class Path {
         return true
     }
     
+    /// Origin of the path – origin of the very first item in the path.
     public var origin: Node { links.first!.origin }
+
+    /// Target of the path – target of the very last item in the path.
     public var target: Node { links.last!.target }
 }
 
@@ -55,7 +60,6 @@ extension Path: MutableCollection {
     public func index(after index: Index) -> Index {
         return links.index(after: index)
     }
-    var foo: Element { links[0] }
 
     public subscript(index: Index) -> Element {
         get {

@@ -15,15 +15,31 @@
  
  */
 
-/// Holon constraint
+/// Protocol for objects that define a graph constraint.
+///
+/// For concrete constraints see: ``LinkConstraint`` and ``NodeConstraint``.
+///
 public protocol Constraint {
+    /// Identifier of the constraint.
+    ///
+    /// - Important: It is highly recommended that the constraint names are
+    /// unique within an application, to communicate issues to the user clearly.
+    ///
     var name: String { get }
-    /// Checks whether the graph satisfies the constraint. Returns a list of
-    /// graph objects that violate the constraint
-    func check(_ graph: Graph) -> (nodes: [Node], links: [Link])
-    
     // TODO: Rename to non-conflicting attribute, like "message"
+    /// Human-readable description of the constraint. The recommended content
+    /// can be:
+    ///
+    /// - What a link or a node must be?
+    /// - What a link or a node must have?
+    /// - What a link endpoint - origin or target - must point to?
+    ///
     var description: String? { get }
+
+    /// A function that checks whether the graph satisfies the constraint.
+    /// Returns a list of nodes and links that violate the constraint.
+    ///
+    func check(_ graph: Graph) -> (nodes: [Node], links: [Link])
 }
 
 public protocol ObjectConstraintRequirement: LinkConstraintRequirement, NodeConstraintRequirement {
@@ -39,41 +55,65 @@ extension ObjectConstraintRequirement {
     }
 }
 
-/// Specifies links that are prohibited. If the constraint is applied, then it
-/// matches links that are not prohibited and rejects the prohibited ones.
+/// A constraint requirement that is used to specify object (links or nodes)
+/// that are prohibited. If the constraint requirement is used, then it
+/// matches all objects defined by constraint predicate and rejects them all.
 ///
 public class RejectAll: ObjectConstraintRequirement {
+    /// Creates an object constraint requirement that rejects all objects.
+    ///
     public init() {
     }
    
+    /// Returns all objects it is provided – meaning, that all of them are
+    /// violating the constraint.
+    ///
     public func check(objects: [Object]) -> [Object] {
         /// We reject whatever comes in
         return objects
     }
 }
 
-/// Requirement that accepts all objects selected by the predicate. Used mostly
-/// as a placeholder or for testing.
+/// A constraint requirement that is used to specify object (links or nodes)
+/// that are required. If the constraint requirement is used, then it
+/// matches all objects defined by constraint predicate and accepts them all.
 ///
 public class AcceptAll: ObjectConstraintRequirement {
+    /// Creates an object constraint requirement that accepts all objects.
+    ///
     public init() {
     }
    
+    /// Returns an empty list, meaning that none of the objects are violating
+    /// the constraint.
+    ///
     public func check(objects: [Object]) -> [Object] {
         // We accept everything, therefore we do not return any violations.
         return []
     }
 }
 
-/// Check all non-nil properties
+/// A constraint requirement that a specified property of the objects must
+/// be unique within the checked group of checked objects.
+///
 public class UniqueProperty<Value>: ObjectConstraintRequirement
         where Value: Hashable {
+    
+    /// A function that extracts the value to be checked for uniqueness from
+    /// a graph object (link or a node)
     public var extract: (Object) -> Value?
     
+    /// Creates a unique property constraint requirement with a function
+    /// that extracts a property from a graph object.
+    ///
     public init(_ extract: @escaping (Object) -> Value?) {
         self.extract = extract
     }
     
+    /// Checks the objects for the requirement. The function extracts the
+    /// value from each of the objects and returns a list of those objects
+    /// that have duplicate values.
+    /// 
     public func check(objects: [Object]) -> [Object] {
         var seen: [Value:Array<Object>] = [:]
         

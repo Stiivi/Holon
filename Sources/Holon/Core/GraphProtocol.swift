@@ -38,7 +38,7 @@ public protocol GraphProtocol {
     /// - Complexity: O(n). All links are traversed.
     ///
     /// - Note: If you want to get both outgoing and incoming links of a node
-    ///   then use ``neighbours``. Using ``outgoing`` + ``incoming`` might
+    ///   then use ``neighbours(_:)-d13k``. Using ``outgoing(_:)`` + ``incoming(_:)-3rfqk`` might
     ///   result in duplicates for links that are loops to and from the same
     ///   node.
     ///

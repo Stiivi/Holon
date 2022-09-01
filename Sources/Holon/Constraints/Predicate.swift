@@ -79,6 +79,10 @@ public enum LogicalConnective {
 // - got: "Runtime support for parameterized protocol types is only available in macOS 99.99.0 or newer"
 // - various compilation errors
 
+/// A predicate.
+///
+/// - ToDo: This is waiting for Swift 5.7 for some rewrite.
+///
 public protocol Predicate {
     func match(_ object: Object) -> Bool
     func and(_ predicate: Predicate) -> CompoundPredicate

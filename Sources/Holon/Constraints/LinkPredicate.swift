@@ -32,7 +32,7 @@ extension LinkPredicate {
 /// origin and target.
 ///
 public class LinkObjectPredicate: LinkPredicate {
-    
+    // FIXME: Merge with LinkLabelsPredicate!!!
     // TODO: Use CompoundPredicate
     // FIXME: I do not like this class
     

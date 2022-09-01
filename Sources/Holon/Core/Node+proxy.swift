@@ -7,7 +7,10 @@
 
 // FIXME: Move this to Node.swift
 extension Node {
+    /// Label for a node that represents a proxy.
     public static let ProxyLabel = "%proxy"
+
+    /// A link selector that matches a link from a proxy to its subject.
     public static let SubjectSelector = LinkSelector(Link.SubjectLabel,
                                                      direction: .outgoing)
     
@@ -55,7 +58,7 @@ extension Node {
     /// Link that is a representation of the proxy node.
     ///
     /// Representation link is an outgoing link from the proxy node
-    /// which has a label ``Link/Subject``.
+    /// which has a label ``Link/SubjectLabel``.
     ///
     public var subjectLink: Link? { outgoing.first { $0.isSubject } }
     

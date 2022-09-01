@@ -7,12 +7,26 @@
 
 // TODO: Merge with LinkConstraint
 
+/// An object representing constraint that checks nodes.
+///
 public class NodeConstraint: Constraint {
     public let name: String
     public let description: String?
     public let match: NodePredicate
     public let requirement: NodeConstraintRequirement
     
+    /// Creates a node constraint.
+    ///
+    /// - Properties:
+    ///
+    ///     - name: Constraint name
+    ///     - description: Constraint description
+    ///     - match: a node predicate that matches nodes to be considered for
+    ///       this constraint
+    ///     - requirement: a requirement that needs to be satisfied by the
+    ///       matched nodes.
+    ///
+
     public init(name: String, description: String? = nil, match: NodePredicate, requirement: NodeConstraintRequirement) {
         self.name = name
         self.description = description

@@ -20,7 +20,7 @@
 /// vertices).
 ///
 /// The main functionality of the graph structure is to mutate the graph:
-/// ``Graph/add(_:)``, ``Graph/connect(from:to:attributes:)-372gc``.
+/// ``Graph/add(_:)-3j4hi``, ``Graph/connect(from:to:labels:id:)``.
 ///
 /// # Example
 ///
@@ -32,11 +32,11 @@
 ///
 /// let leftChild = Node()
 /// graph.add(leftChild)
-/// graph.connect(from: parent, to: leftChild, at: "left")
+/// graph.connect(from: parent, to: leftChild, labels: ["left"])
 ///
 /// let rightChild = Node()
 /// graph.add(rightChild)
-/// graph.connect(from: parent, to: leftChild, at: "right")
+/// graph.connect(from: parent, to: leftChild, labels: ["right"])
 /// ```
 ///
 /// ## Lifetime and Ownership of Nodes and Links
@@ -44,13 +44,13 @@
 /// When a node is created, it belongs to the creator until the node
 /// is added to the graph. When a node is added to the graph using
 /// ``Graph/add(_:)-3j4hi`` then the graph becomes owner of the node until the
-/// node is removed from the graph with ``Graph/remove(_:strategy:)``.
+/// node is removed from the graph with ``Graph/remove(_:)``.
 ///
 /// Link, when created externally, is owned by the creator. When a link is added
 /// to the graph using ``Graph/add(_:)-af7w`` or a new link is created by
 /// ``Graph/connect(from:to:labels:id:)`` then graph becomes owner of the
 /// link until the link is removed from the graph either with
-/// ``Graph/disconnect(link:)`` or as a by-product of ``Graph/remove(_:strategy:)``.
+/// ``Graph/disconnect(link:)`` or as a by-product of ``Graph/remove(_:)``.
 ///
 public class Graph: MutableGraphProtocol {
     // Potential generic parameters:
@@ -89,10 +89,29 @@ public class Graph: MutableGraphProtocol {
     /// Create an empty graph.
     ///
     /// - Parameters:
-    ///   - idGenerator: Generator of unique IDs. Default is ``SequenceIDGenerator``.
+    ///
+    ///     - nodes: List of nodes of the new graph. The nodes must not be
+    ///       associated with any other graph
+    ///     - nodes: List of links of the new graph. The links must not be
+    ///       associated with any other graph and must be valid.
+    ///
+    /// - Precondition: Provided nodes and links must not belong to any graph.
+    /// - Precondition: Endpoints of the links must be in the list of provided nodes
     ///
     public init(nodes: [Node] = [], links: [Link] = []) {
+        guard nodes.allSatisfy({ $0.graph == nil }) else {
+            preconditionFailure("Nodes must not be associated with any graph")
+        }
         self.nodes = nodes
+
+        guard links.allSatisfy({ $0.graph == nil }) else {
+            preconditionFailure("Links must not be associated with any graph")
+        }
+
+        guard links.allSatisfy({ nodes.contains($0.origin) && nodes.contains($0.target) }) else {
+            preconditionFailure("Links endpoints must be in the provided list of nodes")
+        }
+
         self.links = links
     }
     
@@ -318,7 +337,7 @@ public class Graph: MutableGraphProtocol {
     /// - Complexity: O(n). All links are traversed.
     ///
     /// - Note: If you want to get both outgoing and incoming links of a node
-    ///   then use ``neighbours``. Using ``outgoing`` + ``incoming`` might
+    ///   then use ``neighbours(_:)``. Using ``outgoing(_:)`` + ``incoming(_:)`` might
     ///   result in duplicates for links that are loops to and from the same
     ///   node.
     ///
@@ -331,6 +350,8 @@ public class Graph: MutableGraphProtocol {
 
         return result
     }
+    
+    
     /// Get a list of links incoming to a node.
     ///
     /// - Parameters:
@@ -342,7 +363,7 @@ public class Graph: MutableGraphProtocol {
     /// - Complexity: O(n). All links are traversed.
     ///
     /// - Note: If you want to get both outgoing and incoming links of a node
-    ///   then use ``neighbours``. Using ``outgoing`` + ``incoming`` might
+    ///   then use ``neighbours(_:)``. Using ``outgoing(_:)`` + ``incoming(_:)`` might
     ///   result in duplicates for links that are loops to and from the same
     ///   node.
     ///
@@ -355,6 +376,7 @@ public class Graph: MutableGraphProtocol {
 
         return result
     }
+    
     
     /// Get a list of links that are related to the neighbours of the node. That
     /// is, list of links where the node is either an origin or a target.
@@ -372,7 +394,6 @@ public class Graph: MutableGraphProtocol {
 
         return result
     }
-    
 
     
     /// Determines whether the node has no outgoing links. That is, if there
@@ -432,6 +453,8 @@ public class Graph: MutableGraphProtocol {
     
     /// Create a copy of the graph
     public func copy() -> Graph {
+        // FIXME: IMPORTANT: This needs attention/thinking. What about identities?
+        
         let graph = Graph()
         var map: [ObjectIdentifier:Node] = [:]
         for node in nodes {

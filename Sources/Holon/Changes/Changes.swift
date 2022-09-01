@@ -7,11 +7,17 @@
 
 /// Representation of a change within a graph.
 ///
-/// ``GraphChange`` is used for observation of changes. Instances are being
-/// sent in the observation process through methods such as ``Holon/observe()``,
-/// ``Holon/observeNeighbourhood(node:)`` or ``Holon/observeAttributes(object:)``.
+/// - Attention: Unused for now.
+///
+/// - ToDo: Currently unused, just ported from another library and needs
+///         to be adopted back again.
+///
 ///
 public enum GraphChange: Equatable {
+    // ``GraphChange`` is used for observation of changes. Instances are being
+    // sent in the observation process through methods such as ``Holon/observe()``,
+    // ``Holon/observeNeighbourhood(node:)`` or ``Holon/observeAttributes(object:)``.
+
     // TODO: Add case holonMoved(Holon, to: Holon)
     
     

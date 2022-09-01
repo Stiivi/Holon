@@ -1,11 +1,9 @@
 //
-//  File.swift
-//  
+//  Node+Proxy.swift
+//
 //
 //  Created by Stefan Urbanek on 23/08/2022.
 //
-
-import Foundation
 
 // FIXME: Move this to Node.swift
 extension Node {
@@ -51,6 +49,19 @@ extension Node {
     }
 
     var isProxy: Bool { contains(label: Node.ProxyLabel) }
+    
+    /// Link that is a representation of the proxy node.
+    ///
+    /// Representation link is an outgoing link from the proxy node
+    /// which has a label ``Link/RepresentsLabel``.
+    ///
+    public var subjectLink: Link? { outgoing.first { $0.isSubject } }
+    
+    /// A node that the port represents. Must be from the same holon as the
+    /// referencing port.
+    ///
+    public var subject: Node? { return subjectLink?.target }
+    
 }
 
 
@@ -65,36 +76,11 @@ extension Node {
 ///
 /// To resolve the indirect links the ``IndirectLinkRewriter`` can be used.
 ///
-public class Proxy: Node {
+public class _Proxy: Node {
     override public init(id: OID?=nil, labels: LabelSet=LabelSet()) {
         super.init(id: id, labels: labels.union([Node.ProxyLabel]))
     }
 
-    /// Link that is a representation of the proxy node.
-    ///
-    /// Representation link is an outgoing link from the proxy node
-    /// which has a label ``Link/RepresentsLabel``.
-    ///
-    public var subjectLink: Link? { outgoing.first { $0.isSubject } }
-    
-    /// A node that the port represents. Must be from the same holon as the
-    /// referencing port.
-    ///
-    public var subject: Node? { return subjectLink?.target }
-    
-    /// Get the final node that the port represents.
-    public var finalNode: Node? {
-        if let proxy = subject as? Proxy {
-            return proxy.subject
-        }
-        else {
-            return subject
-        }
-    }
-
-    /// Links passing through the port
-    var links: [Link] = []
-    
 //    /// Creates a port with a represented node.
 //    ///
 //    /// The represented node must be either a node from the same holon as the
@@ -109,11 +95,11 @@ public class Proxy: Node {
 //        self.representedNode = representedNode
 //    }
 
-    /// Creates an unassociated copy of the node.
-    ///
-    override public func copy() -> Node {
-        return Proxy(id: id, labels: labels)
-    }
+//    /// Creates an unassociated copy of the node.
+//    ///
+//    override public func copy() -> Node {
+//        return Proxy(id: id, labels: labels)
+//    }
 
     
     public override var description: String {

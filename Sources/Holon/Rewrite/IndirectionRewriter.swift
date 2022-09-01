@@ -53,7 +53,8 @@ public class IndirectionRewriter {
             // Whether to follow the link again
             var followAgain: Bool = false
             if link.hasIndirectOrigin {
-                guard let proxy = link.origin as? Proxy else {
+                let proxy = link.origin
+                guard proxy.isProxy else {
                     fatalError("Indirect origin must be a proxy")
                 }
                 guard let subjectLink = proxy.subjectLink else {
@@ -70,7 +71,8 @@ public class IndirectionRewriter {
             }
 
             if link.hasIndirectTarget {
-                guard let proxy = link.target as? Proxy else {
+                let proxy = link.target
+                guard proxy.isProxy else {
                     fatalError("Indirect origin must be a proxy")
                 }
                 guard let subjectLink = proxy.subjectLink else {
@@ -98,11 +100,5 @@ public class IndirectionRewriter {
         }
         
         return graph
-    }
-    
-    /// Get a path of nodes referenced by a node. Follow the indirection.
-    ///
-    public func referencedPath(_ node: Node) -> Path {
-        return graph.proxyPath(node)
     }
 }

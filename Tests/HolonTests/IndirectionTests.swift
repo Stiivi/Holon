@@ -36,7 +36,7 @@ final class IndirectionRewriterTests: XCTestCase {
         //
         
         let origin = Node(labels: ["origin"])
-        let proxy = Proxy()
+        let proxy = Node(role: .proxy)
         let target = Node(labels: ["target"])
         
         graph.add(origin)
@@ -68,8 +68,8 @@ final class IndirectionRewriterTests: XCTestCase {
         //
         let origin = Node(labels: ["origin"])
         let target = Node(labels: ["target"])
-        let proxy1 = Proxy(labels: ["proxy1"])
-        let proxy2 = Proxy(labels: ["proxy2"])
+        let proxy1 = Node(labels: ["proxy1"], role: .proxy)
+        let proxy2 = Node(labels: ["proxy2"], role: .proxy)
 
         graph.add(origin)
         graph.add(target)
@@ -99,8 +99,8 @@ final class IndirectionRewriterTests: XCTestCase {
         //
         let origin = Node(labels: ["origin"])
         let target = Node(labels: ["target"])
-        let proxy1 = Proxy(labels: ["proxy1"])
-        let proxy2 = Proxy(labels: ["proxy2"])
+        let proxy1 = Node(labels: ["proxy1"], role: .proxy)
+        let proxy2 = Node(labels: ["proxy2"], role: .proxy)
 
         graph.add(origin)
         graph.add(target)

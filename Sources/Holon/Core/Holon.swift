@@ -9,8 +9,8 @@
 public protocol HolonProtocol: GraphProtocol {
     var holons: [Holon] { get }
     var allHolons: [Holon] { get }
-    var ports: [Proxy] { get }
-    var allPorts: [Proxy] { get }
+    var ports: [Node] { get }
+    var allPorts: [Node] { get }
 }
 
 public extension HolonProtocol {
@@ -24,8 +24,8 @@ public extension HolonProtocol {
     /// List of all ports, including nested one, that are contained in the
     /// graph.
     ///
-    var allPorts: [Proxy] {
-        nodes.compactMap { $0 as? Proxy }
+    var allPorts: [Node] {
+        nodes.filter { $0.isProxy }
     }
 }
 
@@ -82,15 +82,8 @@ public class Holon: Node, HolonProtocol, MutableGraphProtocol {
         }
     }
     
-    public var ports: [Proxy] {
-        nodes.compactMap {
-            if $0.holon == self {
-                return $0 as? Proxy
-            }
-            else {
-                return nil
-            }
-        }
+    public var ports: [Node] {
+        nodes.filter { $0.holon === self }
     }
 
     /// Add a node to the holon.
@@ -101,15 +94,16 @@ public class Holon: Node, HolonProtocol, MutableGraphProtocol {
     /// to the same holon.
     ///
     public func add(_ node: Node) {
-        if let port = node as? Proxy {
-//            precondition(port.representedNode.graph === self.graph,
-//                         "Trying to add a port with represented node from another graph")
-            // FIXME: Remove this, add this as additional checking
-            precondition(port.subject?.holon === self
-                         || (port.subject is Proxy && port.subject?.holon!.holon === self),
-                         "Proxy's represented node must belong to the same holon or be a port of a a child holon")
-        }
-
+        // FIXME: Re-add the preconditions
+        //        if let port = node as? Proxy {
+////            precondition(port.representedNode.graph === self.graph,
+////                         "Trying to add a port with represented node from another graph")
+//            // FIXME: Remove this, add this as additional checking
+//            precondition(port.subject?.holon === self
+//                         || (port.subject is Proxy && port.subject?.holon!.holon === self),
+//                         "Proxy's represented node must belong to the same holon or be a port of a a child holon")
+//        }
+//
         graph!.add(node)
         node.holon = self
     }

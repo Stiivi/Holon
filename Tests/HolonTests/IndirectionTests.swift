@@ -125,3 +125,82 @@ final class IndirectionRewriterTests: XCTestCase {
 
 }
 
+final class IndirectionConstraintsTests: XCTestCase, ConstraintTestProtocol {
+    var graph: Graph!
+    var checker: ConstraintChecker!
+    var strictChecker: ConstraintChecker!
+    
+    override func setUp() {
+        graph = Graph()
+        checker = ConstraintChecker(constraints: IndirectionConstraints)
+    }
+    
+    func testSanity() throws {
+        let origin = Node()
+        let originProxy = Node(role:.proxy)
+        let targetProxy = Node(role:.proxy)
+        let target = Node()
+        graph.add(origin)
+        graph.add(target)
+        graph.add(originProxy)
+        graph.add(targetProxy)
+
+        graph.connect(proxy: originProxy, representing: origin)
+        graph.connect(proxy: targetProxy, representing: target)
+        assertNoViolation()
+    }
+    func testProxySingleSubject() throws {
+        let node = Node()
+        let other = Node()
+        let proxy = Node(role:.proxy)
+        graph.add(node)
+        graph.add(other)
+        graph.add(proxy)
+
+        // No subject here
+        assertConstraintViolation("proxy_single_subject")
+
+        // Just right
+        graph.connect(from: proxy, to: node, labels: [Link.SubjectLabel])
+        assertNoViolation()
+
+        // Too many subjects here
+        graph.connect(from: proxy, to: node, labels: [Link.SubjectLabel])
+        assertConstraintViolation("proxy_single_subject")
+    }
+    
+    func testSubjectLinkOriginIsProxy() throws {
+        let node = Node()
+        let other = Node()
+        let proxy = Node(role:.proxy)
+        graph.add(node)
+        graph.add(other)
+        graph.add(proxy)
+
+        graph.connect(from: node, to: other, labels: [Link.SubjectLabel])
+        assertConstraintViolations(["subject_link_origin_is_proxy",
+                                    "proxy_single_subject"])
+
+    }
+    
+    func testSubjectIndirectEndpointIsProxy() throws {
+        let origin = Node()
+        let target = Node()
+        let bogus = Node()
+        
+        graph.add(origin)
+        graph.add(target)
+        graph.add(bogus)
+        
+        let originLink = graph.connect(from: origin,
+                                       to: target,
+                                       labels: [Link.IndirectOriginLabel])
+        assertConstraintViolation("indirect_origin_is_proxy")
+
+        graph.disconnect(link: originLink)
+        graph.connect(from: origin,
+                        to: target,
+                    labels: [Link.IndirectTargetLabel])
+        assertConstraintViolation("indirect_target_is_proxy")
+    }
+}

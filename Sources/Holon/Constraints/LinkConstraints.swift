@@ -25,10 +25,10 @@ public class LinkConstraint: Constraint {
     /// Check the graph for the constraint and return a list of nodes that
     /// violate the constraint
     ///
-    public func check(_ graph: Graph) -> [Object] {
+    public func check(_ graph: Graph) -> (nodes: [Node], links: [Link]) {
         let matched = graph.links.filter { match.match($0) }
         let violating = requirement.check(matched)
-        return violating
+        return (nodes: [], links: violating)
     }
 }
 
@@ -40,7 +40,7 @@ public protocol LinkConstraintRequirement {
     ///
     /// - Returns: List of graph objects that cause constraint violation.
     ///
-    func check(_ links: [Link]) -> [Object]
+    func check(_ links: [Link]) -> [Link]
 }
 
 /// Requirement that the link origin, link target and the link itself matches
@@ -59,7 +59,7 @@ public class LinkLabelsRequirement: LinkConstraintRequirement {
                 target: LabelPredicate? = nil,
                 link: LabelPredicate? = nil) {
         guard !(origin == nil && target == nil && link == nil) else {
-            fatalError("At least one of the parameters must be set: origin or target")
+            preconditionFailure("At least one of the parameters must be set: origin or target")
         }
         
         self.originLabels = origin
@@ -67,19 +67,24 @@ public class LinkLabelsRequirement: LinkConstraintRequirement {
         self.linkLabels = target
     }
     
-    public func check(_ links: [Link]) -> [Object] {
-        let violations: [Link] = links.filter { link in
+    public func check(_ links: [Link]) -> [Link] {
+        var violations: [Link] = []
+        
+        for link in links {
             if let predicate = originLabels, !predicate.match(link.origin) {
-                return false
+                violations.append(link)
+                continue
             }
             if let predicate = targetLabels, !predicate.match(link.target) {
-                return false
+                violations.append(link)
+                continue
             }
             if let predicate = linkLabels, !predicate.match(link) {
-                return false
+                violations.append(link)
+                continue
             }
-            return true
         }
+
         return violations
     }
 }

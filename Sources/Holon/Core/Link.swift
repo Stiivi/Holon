@@ -14,21 +14,6 @@
 ///
 public class Link: Object {
     
-//    /// Special link type
-//    ///
-//    enum InternalKind {
-//        case `default`
-//        /// Origin is a holon's child, target is a holon
-//        /// Arity: One-to-Many
-//        case holon
-//        /// Origin is a port, target is port's represented node.
-//        /// Arity: Many-to-One
-//        case representedNode
-//        case indirectOrigin
-//        case indirectTarget
-//        case indirectEndpoints
-//    }
-//    let internalKind: InternalKind = .`default`
     
     /// Origin node of the link - a node from which the link points from.
     ///
@@ -47,10 +32,18 @@ public class Link: Object {
     public override var description: String {
         return "Link(id: \(idDebugString), \(origin.idDebugString) -> \(target.idDebugString), labels: \(labels.sorted()))"
     }
-    
+}
+extension Link: Hashable {
+    // FIXME: Is this 100% OK?
     public static func == (lhs: Link, rhs: Link) -> Bool {
-        (lhs as Object == rhs as Object)
-        && lhs.origin == rhs.origin && lhs.target == rhs.target
+        lhs.id == rhs.id
+        && lhs.labels == rhs.labels
+        && lhs.origin == rhs.origin
+        && lhs.target == rhs.target
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }
 

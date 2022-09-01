@@ -69,3 +69,15 @@ open class Node: Object {
         return Node(id: id, labels: labels)
     }
 }
+
+extension Node: Hashable {
+    public static func == (lhs: Node, rhs: Node) -> Bool {
+        lhs.id == rhs.id
+        && lhs.labels == rhs.labels
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+

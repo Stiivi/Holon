@@ -27,6 +27,10 @@ public class IndirectionRewriter {
     /// graph will have indirect links rewritten into direct links. All proxy
     /// node will be removed as well.
     ///
+    /// - Note: To successfully rewrite the indirections, the graph must fulfil
+    ///   indirection constraints. See ``IndirectionConstraints`` for more
+    ///   information.
+    ///
     public func rewrite() -> Graph {
         // FIXME: New links have no ID
         // Nodes without ports

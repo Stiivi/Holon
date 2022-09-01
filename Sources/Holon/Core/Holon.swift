@@ -86,6 +86,8 @@ extension Node {
 ///
 extension Node: HolonProtocol, MutableGraphProtocol {
     public static let HolonLabel = "%holon"
+    public static let ParentHolonSelector = LinkSelector(Link.HolonLinkLabel,
+                                                         direction: .outgoing)
 
     /// List of nodes that belong to the holon directly. The list excludes all
     /// nodes that belong to the children holons.

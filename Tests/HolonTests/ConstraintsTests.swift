@@ -34,21 +34,27 @@ final class ConstraintsTests: XCTestCase {
         let flow1 = graph.connect(from: source, to: target1)
         let flow2 = graph.connect(from: source, to: target2)
 
+        let violations = constraint.check(graph)
         /// Non-required constraint is satisfied, the required constraint is not
-        XCTAssertTrue(constraint.check(graph).isEmpty)
-        XCTAssertEqual(constraintRequired.check(graph), [source])
+        XCTAssertTrue(violations.links.isEmpty)
+        XCTAssertTrue(violations.nodes.isEmpty)
+        XCTAssertEqual(constraintRequired.check(graph).nodes, [source])
 
         
         /// Both constraints are satisfied
         flow1.set(label: "flow")
-        XCTAssertTrue(constraint.check(graph).isEmpty)
-        XCTAssertTrue(constraintRequired.check(graph).isEmpty)
+        let violations2 = constraint.check(graph)
+        XCTAssertTrue(violations2.links.isEmpty)
+        XCTAssertTrue(violations2.nodes.isEmpty)
+        let violations3 = constraintRequired.check(graph)
+        XCTAssertTrue(violations3.nodes.isEmpty)
+        XCTAssertTrue(violations3.links.isEmpty)
 
         /// Both constraints are not satisfied.
         flow2.set(label: "flow")
         ///
-        XCTAssertEqual(constraint.check(graph), [source])
-        XCTAssertEqual(constraintRequired.check(graph), [source])
+        XCTAssertEqual(constraint.check(graph).nodes, [source])
+        XCTAssertEqual(constraintRequired.check(graph).nodes, [source])
     }
     
     func testLinkConstraint() throws {
@@ -73,7 +79,7 @@ final class ConstraintsTests: XCTestCase {
         
         let violations1 = c1.check(graph)
         
-        XCTAssertEqual(violations1, [linkBad])
+        XCTAssertEqual(violations1.links, [linkBad])
         
         let c2 = LinkConstraint(
             name: "test_constraint",
@@ -87,8 +93,8 @@ final class ConstraintsTests: XCTestCase {
         
         let violations2 = c2.check(graph)
         
-        XCTAssertEqual(violations2, [])
-
+        XCTAssertEqual(violations2.links, [])
+        XCTAssertEqual(violations2.nodes, [])
     }
 }
 
@@ -136,12 +142,38 @@ final class TestUniqueProperty: XCTestCase {
         let n3d = Node(id: 30)
         let objects = [n1, n1d, n2, n3, n3d]
 
-        let violations = req.check(objects: objects)
+        // FIXME: Once we fix protocol remove the map
+        let violations = req.check(objects: objects).map { $0 as! Node }
         XCTAssertEqual(violations.count, 4)
         
         XCTAssertTrue(violations.contains(n1))
         XCTAssertTrue(violations.contains(n1d))
         XCTAssertTrue(violations.contains(n3))
         XCTAssertTrue(violations.contains(n3d))
+    }
+}
+
+final class TestLinkLabelsRequirement: XCTestCase {
+    let graph = Graph()
+    
+    func testOrigin() throws {
+        let origin = Node(labels: ["origin"])
+        let target = Node(labels: ["target"])
+        graph.add(origin)
+        graph.add(target)
+        let validLink = graph.connect(from: origin, to: target)
+        let invalidLink = graph.connect(from: target, to: origin)
+
+        let requirement = LinkLabelsRequirement(
+            origin: LabelPredicate(all: "origin"),
+            target: nil,
+            link: nil
+        )
+        
+        let invalid = requirement.check(graph.links).map { $0 as! Link }
+        
+        XCTAssertEqual(invalid.count, 1)
+        XCTAssertTrue(invalid.contains(invalidLink))
+        XCTAssertFalse(invalid.contains(validLink))
     }
 }

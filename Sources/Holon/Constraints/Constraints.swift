@@ -20,7 +20,7 @@ public protocol Constraint {
     var name: String { get }
     /// Checks whether the graph satisfies the constraint. Returns a list of
     /// graph objects that violate the constraint
-    func check(_ graph: Graph) -> [Object]
+    func check(_ graph: Graph) -> (nodes: [Node], links: [Link])
     
     // TODO: Rename to non-conflicting attribute, like "message"
     var description: String? { get }
@@ -31,11 +31,11 @@ public protocol ObjectConstraintRequirement: LinkConstraintRequirement, NodeCons
 }
 
 extension ObjectConstraintRequirement {
-    public func check(_ links: [Link]) -> [Object] {
-        return check(objects: links)
+    public func check(_ links: [Link]) -> [Link] {
+        return check(objects: links).map { $0 as! Link }
     }
-    public func check(_ nodes: [Node]) -> [Object] {
-        return check(objects: nodes)
+    public func check(_ nodes: [Node]) -> [Node] {
+        return check(objects: nodes).map { $0 as! Node }
     }
 }
 
@@ -96,28 +96,5 @@ public class UniqueProperty<Value>: ObjectConstraintRequirement
             $0.value
         }
         return duplicates
-    }
-}
-
-public class ObjectConstraint: Constraint {
-    public let name: String
-    public let match: Predicate
-    public let requirement: ObjectConstraintRequirement
-    public let description: String?
-    
-    public init(name: String, description: String? = nil, match: Predicate, requirement: ObjectConstraintRequirement) {
-        self.name = name
-        self.description = description
-        self.match = match
-        self.requirement = requirement
-    }
-
-    /// Check the graph for the constraint and return a list of nodes that
-    /// violate the constraint
-    ///
-    public func check(_ graph: Graph) -> [Object] {
-        let matched = graph.links.filter { match.match($0) }
-        let violating = requirement.check(matched)
-        return violating
     }
 }

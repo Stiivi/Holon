@@ -8,7 +8,9 @@
 // FIXME: Move this to Node.swift
 extension Node {
     public static let ProxyLabel = "%proxy"
-
+    public static let SubjectSelector = LinkSelector(Link.SubjectLabel,
+                                                     direction: .outgoing)
+    
     /// Type denoting a role of a node. Some nodes can have special meaning and
     /// treatment at the system level depending on their role. The roles can be:
     ///
@@ -62,54 +64,4 @@ extension Node {
     ///
     public var subject: Node? { subjectLink?.target }
     
-}
-
-
-
-// FIXME: When removing a port represented object, graph becomes inconsistent because the pseudo-link remains
-
-/// Node that represents another node.
-///
-/// When a proxy node is used as a link endpoint (as a target or as an origin),
-/// and if the link is marked as indirect, then the link can be interpreted
-/// as a link between the nodes that the proxy represents.
-///
-/// To resolve the indirect links the ``IndirectLinkRewriter`` can be used.
-///
-public class _Proxy: Node {
-    override public init(id: OID?=nil, labels: LabelSet=LabelSet()) {
-        super.init(id: id, labels: labels.union([Node.ProxyLabel]))
-    }
-
-//    /// Creates a port with a represented node.
-//    ///
-//    /// The represented node must be either a node from the same holon as the
-//    /// referencing port or must be a port from a child holon.
-//    ///
-//    /// - Note: Precondition checking of the relationship between the port and the
-//    /// represented node happens when the port is added to the graph. It is
-//    /// up to the user to make sure that the condition is satisfied, otherwise
-//    /// it is considered a programming error.
-//    ///
-//    public init(_ representedNode: Node) {
-//        self.representedNode = representedNode
-//    }
-
-//    /// Creates an unassociated copy of the node.
-//    ///
-//    override public func copy() -> Node {
-//        return Proxy(id: id, labels: labels)
-//    }
-
-    
-    public override var description: String {
-        let subjectID: String
-        if let subject = subject {
-            subjectID = subject.idDebugString
-        }
-        else {
-            subjectID = "(no subject)"
-        }
-        return "Proxy(id: \(idDebugString), subject: \(subjectID), labels: \(labels.sorted())])"
-    }
 }

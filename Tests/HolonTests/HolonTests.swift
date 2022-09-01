@@ -125,3 +125,36 @@ final class HolonTests: XCTestCase {
         XCTAssertTrue(inner.contains(node: node))
     }
 }
+
+final class HolonConstraintsTests: XCTestCase, ConstraintTestProtocol {
+    var graph: Graph!
+    var checker: ConstraintChecker!
+    var strictChecker: ConstraintChecker!
+    
+    override func setUp() {
+        graph = Graph()
+        checker = ConstraintChecker(constraints: HolonConstraints)
+        strictChecker = ConstraintChecker(constraints: StrictHolonConstraints)
+    }
+    
+    func testSanity() throws {
+        let holon = Node(role:.holon)
+        let node = Node()
+        graph.add(holon)
+        graph.add(node)
+        graph.connect(node: node, holon: holon)
+
+        assertNoViolation()
+    }
+    func testSingleParentHolon() throws {
+        let holon = Node(role:.holon)
+        let node = Node()
+        graph.add(holon)
+        graph.add(node)
+        graph.connect(from: node, to: holon, labels: [Link.HolonLinkLabel])
+        graph.connect(from: node, to: holon, labels: [Link.HolonLinkLabel])
+
+        assertConstraintViolation("single_parent_holon")
+    }
+
+}

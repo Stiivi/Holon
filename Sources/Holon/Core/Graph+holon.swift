@@ -17,6 +17,9 @@ extension Graph {
     /// - Precondition: `holon` must be a a holon node.
     /// - Precondition: `holon` must not already contain a link to another holon.
     ///
+    /// - Note: Preconditions are met if the graph conforms to the
+    /// ``HolonConstraints``.
+    ///
     @discardableResult
     public func connect(node: Node,
                         holon: Node,
@@ -38,6 +41,7 @@ extension Graph {
     ///
     @discardableResult
     public func removeHolon(_ holon: Node) -> (links: [Link], nodes: [Node]) {
+        precondition(holon.isHolon)
         var removedLinks: [Link] = []
         var removedNodes: [Node] = []
         
@@ -70,6 +74,7 @@ extension Graph {
     ///
     @discardableResult
     public func dissolveHolon(_ holon: Node) -> (removed: [Link], created: [Link]) {
+        precondition(holon.isHolon)
         var created: [Link] = []
         
         let parent = holon.holon

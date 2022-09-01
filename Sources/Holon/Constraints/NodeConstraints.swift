@@ -23,10 +23,10 @@ public class NodeConstraint: Constraint {
     /// Check the graph for the constraint and return a list of nodes that
     /// violate the constraint
     ///
-    public func check(_ graph: Graph) -> [Object] {
+    public func check(_ graph: Graph) -> (nodes: [Node], links: [Link]) {
         let matched = graph.nodes.filter { match.match($0) }
         let violating = requirement.check(matched)
-        return violating
+        return (nodes: violating, links: [])
     }
 }
 
@@ -38,7 +38,7 @@ public protocol NodeConstraintRequirement {
     ///
     /// - Returns: List of graph objects that cause constraint violation.
     ///
-    func check(_ nodes: [Node]) -> [Object]
+    func check(_ nodes: [Node]) -> [Node]
 }
 
 
@@ -80,7 +80,7 @@ public class UniqueNeighbourRequirement: NodeConstraintRequirement {
         }
     }
 
-    public func check(_ nodes: [Node]) -> [Object] {
+    public func check(_ nodes: [Node]) -> [Node] {
         return nodes.filter { !check($0) }
     }
 }

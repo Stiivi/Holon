@@ -9,8 +9,8 @@ public struct ConstraintViolation: CustomStringConvertible, CustomDebugStringCon
     // TODO: Use constraint reference instead of just a name
     public let constraint: Constraint
     
-    // FIXME: Split into links and nodes
-    public let objects: [Object]
+    public let nodes: [Node]
+    public let links: [Link]
 
     public var name: String { constraint.name }
 
@@ -23,23 +23,15 @@ public struct ConstraintViolation: CustomStringConvertible, CustomDebugStringCon
         }
     }
     public var debugDescription: String {
-        "ConstraintViolation(\(name), \(objects))"
-    }
-
-    public var nodes:[Node] {
-        objects.compactMap { $0 as? Node }
-    }
-
-    public var links:[Link] {
-        objects.compactMap { $0 as? Link }
+        "ConstraintViolation(\(name), \(nodes), \(links)"
     }
 }
 
 /// An object that check constraints on a graph.
 ///
 public class ConstraintChecker {
-    // TODO: Dissolve this class back into Model?
     // TODO: This is a separate class to make thinking about the problem more explicit
+    // TODO: Yes this class might have been just a function
     // TODO: Maybe convert to: extension Array where Element == Constraint
 
     let constraints: [Constraint]
@@ -49,18 +41,20 @@ public class ConstraintChecker {
     }
     
     public func check(graph: Graph) -> [ConstraintViolation] {
-        let violations: [ConstraintViolation]
+        var violations: [ConstraintViolation] = []
         
-        violations = constraints.compactMap {
-            let violators = $0.check(graph)
+        for constraint in constraints {
+            // Get the violators
+            let (nodes, links) = constraint.check(graph)
             
-            if violators.isEmpty {
-                return nil
+            if nodes.isEmpty && links.isEmpty {
+                continue
             }
-            else {
-                return ConstraintViolation(constraint: $0, objects: violators)
-            }
-            
+            let violation = ConstraintViolation(constraint: constraint,
+                                                nodes: nodes,
+                                                links: links)
+            violations.append(violation)
+
         }
 
         return violations

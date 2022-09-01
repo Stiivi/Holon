@@ -105,14 +105,22 @@ open class Object: Identifiable, CustomStringConvertible {
     }
 }
 
-extension Object: Hashable {
-    public static func == (lhs: Object, rhs: Object) -> Bool {
-        lhs.id == rhs.id && lhs.labels == rhs.labels
-    }
-    
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-}
 
-
+/// A set of nodes and links.
+///
+//public struct GraphObjectSet: Collection {
+//    // TODO: This needs attention
+//    public typealias Index = Array<Object>.Index
+//    public typealias Element = Object
+//    public let objects: [Object]
+//    
+//    public init(nodes: [Node] = [], links: [Link] = []) {
+//        self.nodes = nodes
+//        self.links = links
+//    }
+//    
+//    public var startIndex: Index { return links.startIndex }
+//    public var endIndex: Index { return links.endIndex }
+//
+//    
+//}

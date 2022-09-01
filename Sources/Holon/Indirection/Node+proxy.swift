@@ -7,7 +7,7 @@
 
 // FIXME: Move this to Node.swift
 extension Node {
-    public static let ProxyLabel = "__proxy"
+    public static let ProxyLabel = "%proxy"
 
     /// Type denoting a role of a node. Some nodes can have special meaning and
     /// treatment at the system level depending on their role. The roles can be:

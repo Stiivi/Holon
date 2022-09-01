@@ -44,7 +44,7 @@ public extension HolonProtocol {
 ///   removed as well, including child holons and their nodes
 ///
 public class Holon: Node, HolonProtocol, MutableGraphProtocol {
-    public static let HolonLabel = "__holon"
+    public static let HolonLabel = "%holon"
 
     override public init(id: OID?=nil, labels: LabelSet=LabelSet()) {
         super.init(id: id, labels: labels.union([Holon.HolonLabel]))

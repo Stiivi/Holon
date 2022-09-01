@@ -10,15 +10,6 @@
 ///
 public typealias OID = Int
 
-/// Type of a node or a link label.
-///
-public typealias Label = String
-
-/// Type for set of labels.
-///
-public typealias LabelSet = Set<String>
-
-
 /// An abstract class representing all objects in a graph. Concrete
 /// kinds of graph objects are ``Node`` and ``Link``.
 ///

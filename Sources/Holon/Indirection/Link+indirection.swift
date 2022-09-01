@@ -8,13 +8,13 @@
 // TODO: CONSTRAINT: Subject link origin must be proxy
 
 extension Link {
-    public static let IndirectTargetLabel = "__indirect_target"
-    public static let IndirectOriginLabel = "__indirect_origin"
-    public static let HolonLinkLabel = "__holon"
+    public static let IndirectTargetLabel = "%indirect-target"
+    public static let IndirectOriginLabel = "%indirect-origin"
+    public static let HolonLinkLabel = "%holon"
     
     /// Label for links from a proxy node to potentially real node.
     /// Links with this label are expected to have a proxy node as origin.
-    public static let SubjectLabel = "__subject"
+    public static let SubjectLabel = "%subject"
     
     public var isIndirect: Bool { hasIndirectOrigin || hasIndirectTarget }
 

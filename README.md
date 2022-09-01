@@ -164,7 +164,3 @@ The code might contain:
 # Authors
 
 - Stefan Urbanek, stefan.urbanek@gmail.com
-
-# License
-
-MIT

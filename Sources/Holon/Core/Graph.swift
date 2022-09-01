@@ -85,13 +85,6 @@ public class Graph: MutableGraphProtocol {
         nodes.compactMap { $0 as? Holon }
     }
 
-    /// List of all ports in the graph.
-    ///
-    public var allPorts: [Port] {
-        nodes.compactMap { return $0 as? Port }
-    }
-
-    
     /// Publisher of graph changes before they are applied. The associated
     /// graph object and the graph are in their original state.
     ///
@@ -188,12 +181,20 @@ public class Graph: MutableGraphProtocol {
     public func remove(_ node: Node) -> [Link] {
         precondition(node.graph === self, "Trying to remove a node that does not belong to the graph")
         // FIXME: This is getting complicated
-        // FIXME: What about ports?
+        // FIXME: IMPORTANT: When removing a port represented object, graph becomes inconsistent because the pseudo-link remains
 
         var disconnected: [Link] = []
         
         let change = GraphChange.removeNode(node)
         willChange(change)
+        
+        if let holon = node as? Holon {
+            // Dissolve the holon - make it's children belong to the holon's
+            // parent
+            for child in holon.nodes {
+                child.holon = holon.holon
+            }
+        }
         
         // First we remove all the connections
         for link in links {
@@ -239,26 +240,6 @@ public class Graph: MutableGraphProtocol {
 
     }
 
-    /// Removes the node representing the holon from the graph. All nodes
-    /// that were direct children of this holon will become children of the
-    /// removed holon's parent. The children are "dissolved" in the parent
-    /// holon.
-    ///
-    /// All the links connected to the removed holon are removed as well. It is
-    /// up to the caller to create new links.
-    ///
-    /// This method calls ``Graph/remove(_:)``.
-    ///
-    @discardableResult
-    public func dissolve(_ holon: Holon) -> [Link] {
-        // Re-wire the parent of holon's children.
-        for child in holon.nodes {
-            child.holon = holon.holon
-        }
-                
-        return remove(holon)
-
-    }
     
     ///
     /// The link name does not have to be unique and there might be multiple
@@ -315,6 +296,7 @@ public class Graph: MutableGraphProtocol {
         
         return link
     }
+    
 
     /// Adds a custom-created link to the graph.
     ///
@@ -494,5 +476,33 @@ public class Graph: MutableGraphProtocol {
 
     public var description: String {
         "Graph(nodes: \(nodes.count), links: \(links.count))"
+    }
+    
+    /// Create a copy of the graph
+    public func copy() -> Graph {
+        let graph = Graph()
+        var map: [ObjectIdentifier:Node] = [:]
+        for node in nodes {
+            let copy = node.copy()
+            map[ObjectIdentifier(node)] = copy
+            graph.add(copy)
+        }
+        for link in links {
+            let originID = ObjectIdentifier(link.origin)
+            let targetID = ObjectIdentifier(link.target)
+            graph.connect(from: map[originID]!,
+                          to: map[targetID]!,
+                          labels: link.labels,
+                          id: link.id)
+        }
+        return graph
+    }
+    
+}
+
+extension Graph: Equatable {
+    public static func ==(lhs: Graph, rhs: Graph) -> Bool {
+        return lhs.nodes == rhs.nodes
+                    && lhs.links == rhs.links
     }
 }

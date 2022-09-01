@@ -13,6 +13,23 @@
 /// it does not prevent one to treat the links as non-oriented.
 ///
 public class Link: Object {
+    
+//    /// Special link type
+//    ///
+//    enum InternalKind {
+//        case `default`
+//        /// Origin is a holon's child, target is a holon
+//        /// Arity: One-to-Many
+//        case holon
+//        /// Origin is a port, target is port's represented node.
+//        /// Arity: Many-to-One
+//        case representedNode
+//        case indirectOrigin
+//        case indirectTarget
+//        case indirectEndpoints
+//    }
+//    let internalKind: InternalKind = .`default`
+    
     /// Origin node of the link - a node from which the link points from.
     ///
     public let origin: Node
@@ -20,65 +37,20 @@ public class Link: Object {
     ///
     public let target: Node
     
-    public var isIndirect: Bool {
-        return origin is Port || target is Port
-    }
-    
-    public var finalOrigin: Node {
-        if let port = origin as? Port {
-            return port.finalNode
-        }
-        else {
-            return origin
-        }
-    }
-    
-    public var finalTarget: Node {
-        if let port = target as? Port {
-            return port.finalNode
-        }
-        else {
-            return target
-        }
-    }
-
     init(origin: Node, target: Node, labels: LabelSet=[], id: OID? = nil) {
         self.origin = origin
         self.target = target
         super.init(id: id, labels: labels)
     }
-
     
-    /// Create an unassociated link object where the origin and target are final
-    /// origin and final target of this link.
-    ///
-    /// Newly created link can not be associated with the same graph as the
-    /// original link, because the IDs within a graph must be unique.
-    ///
-    /// Resolved link and the original link share the same identity because
-    /// logically they represent the same link.
-    ///
-    /// - Note: Resolved link can not be used in the same graph
-    ///
-    public func resolved() -> Link {
-        // TODO: This is slower a bit
-        if isIndirect {
-            let link = Link(origin: finalOrigin,
-                            target: finalTarget,
-                            labels: labels,
-                            id: id)
-            return link
-        }
-        else {
-            return self
-        }
-    }
     
     public override var description: String {
-        let idString = id.map { String($0) } ?? "nil"
-        let originIdString = origin.id.map { String($0) } ?? "nil"
-        let targetIdString = target.id.map { String($0) } ?? "nil"
-
-        return "Link(id: \(idString), \(originIdString) -> \(targetIdString), labels: \(labels.sorted()))"
+        return "Link(id: \(idDebugString), \(origin.idDebugString) -> \(target.idDebugString), labels: \(labels.sorted()))"
+    }
+    
+    public static func == (lhs: Link, rhs: Link) -> Bool {
+        (lhs as Object == rhs as Object)
+        && lhs.origin == rhs.origin && lhs.target == rhs.target
     }
 }
+

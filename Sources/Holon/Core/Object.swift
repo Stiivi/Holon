@@ -54,17 +54,17 @@ open class Object: Identifiable, CustomStringConvertible {
     ///
     public init(id: OID?=nil, labels: LabelSet=[]) {
         self.id = id
-        self.labels = initialLabels().union(labels)
+        self.labels = labels
     }
 
-    /// List of initial labels for a given graph object. Subclasses might
-    /// override this method to provide set of default initial labels that
-    /// will be set for that particular subclass. Default implementation
-    /// returns an empty set.
-    ///
-    public func initialLabels() -> LabelSet {
-        return []
-    }
+//    /// List of initial labels for a given graph object. Subclasses might
+//    /// override this method to provide set of default initial labels that
+//    /// will be set for that particular subclass. Default implementation
+//    /// returns an empty set.
+//    ///
+//    public func initialLabels() -> LabelSet {
+//        return []
+//    }
     
     /// Returns `true` if the object contains the given label.
     ///
@@ -89,9 +89,18 @@ open class Object: Identifiable, CustomStringConvertible {
     }
     
     open var description: String {
-        let idString = id.map { String($0) } ?? "nil"
-        
-        return "Object(id: \(idString), labels: \(labels.sorted())])"
+        return "Object(id: \(idDebugString), labels: \(labels.sorted())])"
+    }
+    
+    /// String representing the object's ID for debugging purposes - either the
+    /// object ID or ObjectIdentifier of the object
+    var idDebugString: String {
+        if let id = id {
+            return String(id)
+        }
+        else {
+            return String(describing: ObjectIdentifier(self))
+        }
     }
     
     // MARK: - Prototyping/Experimental

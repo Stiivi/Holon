@@ -98,13 +98,23 @@ extension GraphProtocol {
     
     /// Get a node by ID.
     ///
+    /// If id is `nil` then returns nil.
+    ///
     public func node(_ id: Object.ID) -> Node? {
+        guard let id = id else {
+            return nil
+        }
         return nodes.first { $0.id == id }
     }
 
     /// Get a link by ID.
     ///
+    /// If id is `nil` then returns nil.
+    ///
     public func link(_ id: Object.ID) -> Link? {
+        guard let id = id else {
+            return nil
+        }
         return links.first { $0.id == id }
     }
 

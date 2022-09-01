@@ -9,8 +9,8 @@
 public protocol HolonProtocol: GraphProtocol {
     var holons: [Holon] { get }
     var allHolons: [Holon] { get }
-    var ports: [Port] { get }
-    var allPorts: [Port] { get }
+    var ports: [Proxy] { get }
+    var allPorts: [Proxy] { get }
 }
 
 public extension HolonProtocol {
@@ -24,8 +24,8 @@ public extension HolonProtocol {
     /// List of all ports, including nested one, that are contained in the
     /// graph.
     ///
-    var allPorts: [Port] {
-        nodes.compactMap { $0 as? Port }
+    var allPorts: [Proxy] {
+        nodes.compactMap { $0 as? Proxy }
     }
 }
 
@@ -44,7 +44,12 @@ public extension HolonProtocol {
 ///   removed as well, including child holons and their nodes
 ///
 public class Holon: Node, HolonProtocol, MutableGraphProtocol {
-    
+    public static let HolonLabel = "__holon"
+
+    override public init(id: OID?=nil, labels: LabelSet=LabelSet()) {
+        super.init(id: id, labels: labels.union([Holon.HolonLabel]))
+    }
+
     /// List of nodes that belong to the holon directly. The list excludes all
     /// nodes that belong to the children holons.
     ///
@@ -77,10 +82,10 @@ public class Holon: Node, HolonProtocol, MutableGraphProtocol {
         }
     }
     
-    public var ports: [Port] {
+    public var ports: [Proxy] {
         nodes.compactMap {
             if $0.holon == self {
-                return $0 as? Port
+                return $0 as? Proxy
             }
             else {
                 return nil
@@ -96,12 +101,13 @@ public class Holon: Node, HolonProtocol, MutableGraphProtocol {
     /// to the same holon.
     ///
     public func add(_ node: Node) {
-        if let port = node as? Port {
-            precondition(port.representedNode.graph === self.graph,
-                         "Trying to add a port with represented node from another graph")
-            precondition(port.representedNode.holon === self
-                         || (port.representedNode is Port && port.representedNode.holon!.holon === self),
-                         "Port's represented node must belong to the same holon or be a port of a a child holon")
+        if let port = node as? Proxy {
+//            precondition(port.representedNode.graph === self.graph,
+//                         "Trying to add a port with represented node from another graph")
+            // FIXME: Remove this, add this as additional checking
+            precondition(port.subject?.holon === self
+                         || (port.subject is Proxy && port.subject?.holon!.holon === self),
+                         "Proxy's represented node must belong to the same holon or be a port of a a child holon")
         }
 
         graph!.add(node)

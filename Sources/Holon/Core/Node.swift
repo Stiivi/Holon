@@ -16,13 +16,18 @@
 /// Object representing a node of a graph.
 ///
 open class Node: Object {
+    //    let internalKind: InternalKind
+    //
+    //    var isPort: Bool { internalKind == .port }
+    //    var isHolon: Bool { internalKind == .holon }
+    var isHolon: Bool { self is Holon }
+    
+    
     /// Graph the object is associated with.
     ///
     public internal(set) var holon: Holon?
     
-
-    var isProxy: Bool { false }
-
+    
     /// Links outgoing from the node, that is links where the node is the
     /// origin.
     ///
@@ -36,7 +41,7 @@ open class Node: Object {
     public var outgoing: [Link] {
         return graph!.outgoing(self)
     }
-
+    
     /// Links incoming to the node, that is links where the node is the target.
     ///
     /// It is empty when the node is not associated with a graph.
@@ -68,5 +73,11 @@ open class Node: Object {
         }
         
         return links.filter { $0.contains(label: selector.label) }
+    }
+    
+    /// Creates an unassociated copy of the node.
+    ///
+    public func copy() -> Node {
+        return Node(id: id, labels: labels)
     }
 }

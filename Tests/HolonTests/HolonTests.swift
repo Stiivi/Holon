@@ -74,36 +74,36 @@ final class HolonTests: XCTestCase {
         XCTAssertNil(innerNode.holon)
     }
     
-    func testDissolveHolon() throws {
-        let outer = Holon()
-        let inner = Holon()
-        let outerNode = Node()
-        let innerNode = Node()
-        
-        graph.add(outer)
-        outer.add(inner)
-        outer.add(outerNode)
-        inner.add(innerNode)
-        
-        XCTAssertIdentical(inner.holon, outer)
-        XCTAssertIdentical(innerNode.holon, inner)
-        XCTAssertIdentical(outerNode.holon, outer)
-        
-        let removed = graph.dissolve(outer)
-        XCTAssertEqual(removed.count, 0)
-        
-        XCTAssertNil(outer.graph)
-        XCTAssertNil(outer.holon)
-        
-        XCTAssertIdentical(outerNode.graph, graph)
-        XCTAssertNil(outer.holon)
-        
-        XCTAssertIdentical(inner.graph, graph)
-        XCTAssertNil(inner.holon)
-        
-        XCTAssertIdentical(innerNode.graph, graph)
-        XCTAssertIdentical(innerNode.holon, inner)
-    }
+//    func testDissolveHolon() throws {
+//        let outer = Holon()
+//        let inner = Holon()
+//        let outerNode = Node()
+//        let innerNode = Node()
+//
+//        graph.add(outer)
+//        outer.add(inner)
+//        outer.add(outerNode)
+//        inner.add(innerNode)
+//
+//        XCTAssertIdentical(inner.holon, outer)
+//        XCTAssertIdentical(innerNode.holon, inner)
+//        XCTAssertIdentical(outerNode.holon, outer)
+//
+//        let removed = graph.dissolve(outer)
+//        XCTAssertEqual(removed.count, 0)
+//
+//        XCTAssertNil(outer.graph)
+//        XCTAssertNil(outer.holon)
+//
+//        XCTAssertIdentical(outerNode.graph, graph)
+//        XCTAssertNil(outer.holon)
+//
+//        XCTAssertIdentical(inner.graph, graph)
+//        XCTAssertNil(inner.holon)
+//
+//        XCTAssertIdentical(innerNode.graph, graph)
+//        XCTAssertIdentical(innerNode.holon, inner)
+//    }
     
     func testOwnership() throws {
         let outer = Holon()
@@ -117,81 +117,4 @@ final class HolonTests: XCTestCase {
         XCTAssertFalse(outer.contains(node: node))
         XCTAssertTrue(inner.contains(node: node))
     }
-    
-    func testPortConnect() throws {
-        let inner = Holon()
-        graph.add(inner)
-        
-        let outerNode = Node()
-        let innerNode = Node()
-        let port = Port(innerNode)
-        
-        graph.add(outerNode)
-        inner.add(innerNode)
-        inner.add(port)
-        
-        let indirectLink = graph.connect(from: outerNode, to: port)
-        let resolved = ResolvedGraphView(graph)
-        let link = resolved.link(indirectLink.id)!
-        XCTAssertIdentical(link.origin, outerNode)
-        XCTAssertIdentical(link.target, innerNode)
-    }
-    func testPortConnectNested() throws {
-        // G: node, [Outer: outerPort, [Inner: innerNode, innerPort]]
-        //
-        let outer = Holon()
-        let inner = Holon()
-        graph.add(outer)
-        outer.add(inner)
-
-        let node = Node()
-        graph.add(node)
-
-        let innerNode = Node()
-        inner.add(innerNode)
-        
-        let innerPort = Port(innerNode)
-        inner.add(innerPort)
-        
-        let outerPort = Port(innerPort)
-        
-        outer.add(outerPort)
-
-        let indirectLink = graph.connect(from: node, to: outerPort)
-        let resolved = ResolvedGraphView(graph)
-        let link = resolved.link(indirectLink.id)!
-        XCTAssertIdentical(link.origin, node)
-        XCTAssertIdentical(link.target, innerNode)
-    }
-    /// When a port is removed, connection through that port must be removed too
-    func testPortRemoveConnection() throws {
-//        throw XCTSkip("Port removal is not yet implemented")
-        let inner = Holon()
-        graph.add(inner)
-        
-        let outerNode = Node()
-        let innerNode = Node()
-        let port = Port(innerNode)
-        
-        graph.add(outerNode)
-        inner.add(innerNode)
-        inner.add(port)
-        
-        let indirectLink = graph.connect(from: outerNode, to: port)
-        let resolved = ResolvedGraphView(graph)
-
-        let removed = graph.remove(port)
-
-        if let removedLink = removed.first {
-            XCTAssertIdentical(indirectLink, removedLink)
-        }
-        else {
-            XCTFail("Expected the link through port to be removed")
-        }
-
-        let link = resolved.link(indirectLink.id)
-        XCTAssertNil(link)
-
-    }
-
 }

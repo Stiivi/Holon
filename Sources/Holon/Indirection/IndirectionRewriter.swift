@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  IndirectionRewriter.swift
 //  
 //
 //  Created by Stefan Urbanek on 29/08/2022.
@@ -23,30 +23,26 @@ public class IndirectionRewriter {
         ///
         let replaced: Link
 
-        /// Link to the subject of the origin, if the origin was indirect.
+        /// Path to the subject of the origin, if the origin was indirect.
         /// It is `nil` if the origin was direct.
-        let originSubjectLink: Link?
+        let originPath: Path?
 
-        /// Link to the subject of the target, if the target was indirect.
+        /// Path to the subject of the target, if the target was indirect.
         /// It is `nil` if the target was direct.
-        let targetSubjectLink: Link?
+        let targetPath: Path?
         
         /// Subject of the origin, if the origin was indirect.
         /// It is `nil` if the origin was direct.
-        var originSubject: Node? { originSubjectLink?.target }
+        var originSubject: Node? { originPath?.target }
 
         /// Subject of the target, if the target was indirect.
         /// It is `nil` if the target was direct.
-        var targetSubject: Node? { targetSubjectLink?.target }
+        var targetSubject: Node? { targetPath?.target }
         
         /// Link that is proposed to be created. The caller might modify
         /// the proposed link or create a new one. If a new link is created,
         /// then the proposed link will be disposed.
         var proposed: Link
-        
-        /// Flag whether the link replacement is final for the proposed link.
-        ///
-        let isFinal: Bool
     }
     
     /// Creates a view for a graph where all of the indirect links will be
@@ -61,7 +57,6 @@ public class IndirectionRewriter {
     /// Returns a new graph created by rewriting the original graph. The new
     /// graph will have indirect links rewritten into direct links.
     ///
-    ///
     /// The algorithm is as follows:
     ///
     /// ```markdown
@@ -70,38 +65,54 @@ public class IndirectionRewriter {
     ///     1. POP a link from `to rewrite`
     ///     2. FOR EACH indirect endpoint IN (origin, target) of the link:
     ///         1. ASSERT that the endpoint IS a proxy
-    ///         2. GET subject link of the endpoint
-    ///         3. SET new endpoint = target of subject link
-    ///         4. IF subject link is indirect:
-    ///             - PUT the link back to the `to rewrite` set
-    ///     3. DISCONNECT the link
-    ///     4. YIELD to caller to adjust the newly proposed link
+    ///         2. GET path to the real subject of the endpoint
+    ///     3. YIELD to caller to adjust the newly proposed link
+    ///     4. DISCONNECT the link
     ///     5. CREATE new link between the new endpoints
     /// ```
     ///
-    /// To better visualise the algorithm, think of the indirect link as a
-    /// stick, where on each of the indirect endpoint there is a string of subject
-    /// links attached to it. Hold the stick horizontally with strings hanging
-    /// down. Now roll the stick so the hanging strings will be winded up on the
-    /// stick until they reach the end. When the strings are fully wound we
-    /// have a direct link – no proxies are dangling any more.
+    /// For example, with the following graph the caller will get two paths for
+    /// potential transformation:
     ///
+    /// - the origin path `[a1 -> a2, a2 -> a3, a3 -> X]`
+    /// - the target path `[b1 -> b2, b2 -> Y]`
     ///
     /// ```
-    ///        origin ----------→ target              ← the stick
-    ///         proxy              proxy
-    ///           |                  |                    ↑
-    ///           | (indirect        | (indirect          |
-    ///           ↓  subject)        ↓  subject)          | winding direction ↺
-    ///         proxy              proxy                  |
-    ///           |                  |
-    ///           | (indirect        | (subject)
-    ///           ↓  subject)        ↓
-    ///         proxy            final target
+    ///        origin A1 ---------→ target B1
+    ///         proxy               proxy
+    ///           |                   |
+    ///           | (indirect         | (indirect
+    ///           ↓  subject)         ↓  subject)
+    ///         proxy a2            proxy b2
+    ///           |                   |
+    ///           | (indirect         | (subject)
+    ///           ↓  subject)         ↓
+    ///         proxy a3           final target Y
     ///           |
     ///           | (subject)
     ///           ↓
-    ///      final origin
+    ///      final origin X
+    ///
+    ///
+    /// ```
+    ///
+    ///  The result after rewriting will be:
+    ///
+    /// ```
+    ///        origin A1           target B1
+    ///         proxy               proxy
+    ///           |                   |
+    ///           | (indirect         | (indirect
+    ///           ↓  subject)         ↓  subject)
+    ///         proxy a2            proxy b2
+    ///           |                   |
+    ///           | (indirect         | (subject)
+    ///           ↓  subject)         ↓
+    ///         proxy a3           final target Y
+    ///           |                   ↑
+    ///           | (subject)         |
+    ///           ↓                   |
+    ///      final origin X ----------+
     ///
     ///
     /// ```
@@ -113,6 +124,10 @@ public class IndirectionRewriter {
     ///         of links to or from proxies that have domain specific meaning,
     ///         for example provide more information about the proxies or
     ///         make collections of proxies.
+    ///
+    /// - Important: The proposed link or a new proposal from within the
+    ///   transformation block must have the same origin and target as
+    ///   provided by the rewriter.
     ///
     /// - Important: To successfully rewrite the indirections, the graph must fulfil
     ///   indirection constraints. See ``IndirectionConstraint`` for more
@@ -132,72 +147,43 @@ public class IndirectionRewriter {
         })
         
         while !rewriteLinks.isEmpty {
-            // Take a link (any)
             let link = rewriteLinks.popFirst()!
             
-            var newOrigin: Node
-            var newTarget: Node
             var labels = link.labels
-
-            // Indirect endpoint – for both origin and target do:
-            // 1. Expect the endpoint to be a proxy -> otherwise error
-            // 2. Get a proxy subject link. MUST exist
-            // 3. Endpoint will be target of the subject link
-            // 4. If either of the endpoints was indirect, then the new link
-            //    will be marked as indirect and placed back to the rewrite list
+            let originPath: Path?
+            let targetPath: Path?
             
-            let originSubjectLink: Link?
-            let targetSubjectLink: Link?
-            
-            // Whether to follow the link again
-            var followAgain: Bool = false
+            // Follow indirect origin
+            //
             if link.hasIndirectOrigin {
                 let proxy = link.origin
-                guard proxy.isProxy else {
-                    fatalError("Indirect origin must be a proxy")
-                }
-                guard let subjectLink = proxy.subjectLink else {
-                    fatalError("Proxy must have a subject link")
-                }
-                newOrigin = subjectLink.target
-                
-                if subjectLink.target.isProxy && subjectLink.isIndirect {
-                    followAgain = true
-                }
-                else {
-                    labels.remove(IndirectionLabel.IndirectOrigin)
-                }
-                originSubjectLink = subjectLink
-            }
-            else {
-                newOrigin = link.origin
-                originSubjectLink = nil
-            }
+                assert(proxy.isProxy, "Indirect origin must be a proxy")
 
-            if link.hasIndirectTarget {
-                let proxy = link.target
-                guard proxy.isProxy else {
-                    fatalError("Indirect origin must be a proxy")
-                }
-                guard let subjectLink = proxy.subjectLink else {
-                    fatalError("Proxy must have a represented node")
-                }
-                newTarget = subjectLink.target
-                
-                if subjectLink.target.isProxy && subjectLink.isIndirect {
-                    followAgain = true
-                }
-                else {
-                    labels.remove(IndirectionLabel.IndirectTarget)
-                }
-                
-                targetSubjectLink = subjectLink
+                originPath = proxy.realSubjectPath()
+                labels.remove(IndirectionLabel.IndirectOrigin)
             }
             else {
-                newTarget = link.target
-                targetSubjectLink = nil
+                originPath = nil
             }
             
+            // Follow indirect target
+            //
+            if link.hasIndirectTarget {
+                let proxy = link.target
+                assert(proxy.isProxy, "Indirect target must be a proxy")
+
+                targetPath = proxy.realSubjectPath()
+                labels.remove(IndirectionLabel.IndirectTarget)
+            }
+            else {
+                targetPath = nil
+            }
+            
+            // Propose a new link
+            //
+            let newOrigin = originPath?.target ?? link.origin
+            let newTarget = targetPath?.target ?? link.target
+
             var proposedLink = Link(origin: newOrigin,
                                     target: newTarget,
                                     labels: labels,
@@ -205,26 +191,25 @@ public class IndirectionRewriter {
 
             let context = Context(
                 replaced: link,
-                originSubjectLink: originSubjectLink,
-                targetSubjectLink: targetSubjectLink,
-                proposed: proposedLink,
-                isFinal: !followAgain
+                originPath: originPath,
+                targetPath: targetPath,
+                proposed: proposedLink
             )
 
+            // Give the caller a chance to modify the proposed link or to
+            // provide a new link.
+            //
             if let transform = transform {
-                // Ask the caller to transform the proposed link
                 if let transformed = transform(context) {
                     proposedLink = transformed
                 }
             }
-            
-            // FIXME: What about the link ID?
+            assert(newOrigin === proposedLink.origin
+                    && newTarget === proposedLink.target,
+                   "Proposed link endpoints can not be changed")
+
             graph.disconnect(link: link)
             graph.add(proposedLink)
-            
-            if followAgain {
-                rewriteLinks.insert(proposedLink)
-            }
         }
         
         return graph

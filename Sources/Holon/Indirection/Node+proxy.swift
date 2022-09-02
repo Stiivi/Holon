@@ -20,8 +20,13 @@ extension Node {
     ///
     public var subjectLink: Link? { outgoing.first { $0.isSubject } }
     
-    /// A node that the port represents. Must be from the same holon as the
-    /// referencing port.
+    /// A node that the port represents. This is a direct subject, not the
+    /// real subject if the subject link is indirect.
+    ///
+    /// To get the real subject use ``realSubjectPath()`` to get the
+    /// path to the real subject traversing indirect subject links.
+    /// Target of the last link, which can be retrieved using ``Path/target``,
+    /// is the real subject.
     ///
     public var subject: Node? { subjectLink?.target }
     
@@ -31,7 +36,8 @@ extension Node {
     /// The function follows all indirect links from the provided proxy node
     /// until it finds a subject link that direct.
     ///
-    /// - Precondition: Node must be a proxy.
+    /// - Precondition: Node must be a proxy and indirection integrity must
+    ///   be assured.
     ///
     public func realSubjectPath() -> Path {
         precondition(isProxy)

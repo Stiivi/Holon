@@ -45,7 +45,7 @@ public class LinkObjectPredicate: LinkPredicate {
     
     public init(origin: NodePredicate? = nil, target: NodePredicate? = nil, link: LinkPredicate? = nil) {
         guard !(origin == nil && target == nil && link == nil) else {
-            fatalError("At least one of the parameters must be set: origin, target or link")
+            preconditionFailure("At least one of the parameters must be set: origin, target or link")
         }
         
         self.originPredicate = origin

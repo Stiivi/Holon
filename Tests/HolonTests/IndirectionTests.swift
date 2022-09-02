@@ -172,55 +172,6 @@ final class IndirectionRewriterTests: XCTestCase {
         XCTAssertEqual(link2.labels, ["two"])
     }
     
-//    func testResolveProxyAlias() throws {
-//        // FROM:
-//        //                    |
-//        //     origin("z") --> proxy("y") -(param,s)-> target("x",req:"y")
-//        //                    |
-//        // TO:
-//        //     origin("z") -(param, "y")-> target("x", req:"y")
-//        //
-//        // Allow caller to add information to the links
-//
-//        let origin = Node(labels: ["origin", "expects-y"])
-//        let proxy = Node(labels: ["is-y"], role: .proxy)
-//        let target = Node(labels: ["target", "is-x"])
-//
-//        graph.add(origin)
-//        graph.add(proxy)
-//        graph.add(target)
-//
-//        graph.connect(proxy: proxy, representing: target)
-//
-//        let indirectLink = graph.connect(from: origin,
-//                                         to: proxy,
-//                                         labels: ["param", Link.IndirectTargetLabel],
-//                                         id: 1)
-//
-//        let decorate: (IndirectionRewriter.Context) -> Link? = {
-//            context in
-//            if context.originIsProxy && !context.targetIsProxy {
-//                if target.contains(label: "expects-y") {
-//                    context.proposed.set(label: "is-x")
-//                }
-//            }
-//        }
-//
-//        let new = rewriter.rewrite()
-//
-//        let link = new.link(indirectLink.id)!
-//        XCTAssertEqual(link.origin, origin)
-//        XCTAssertEqual(link.target, target)
-//        XCTAssertEqual(link.labels, ["param", "y"])
-//    }
-    
-    /// Method that allows the caller to modify or replace the proposed link.
-    /// If the function returns nil, then the proposed link will be used.
-    ///
-//    func foo(willReplace replaced: Link, with proposed: Link) -> Link? {
-//
-//    }
-
     func testResolveProxyHop() throws {
         // FROM:
         //     origin --> proxy1 -s-> proxy2 -s-> target
@@ -282,6 +233,71 @@ final class IndirectionRewriterTests: XCTestCase {
         XCTAssertEqual(link.target, proxy2)
         // There must be no indirect links left
         XCTAssertFalse(new.links.contains(where: { $0.isIndirect}))
+    }
+    
+    func testRewriteTransform() throws {
+        //
+        // node(x, uses: "y") <---i- proxy(name: "y") --s--> node(name: "a")
+        //
+        // Test to get a value from within a holon
+        let nodeX = Node(labels: ["x", "usesY"])
+        let proxy = Node(labels: ["y"], role: .proxy)
+        let nodeA = Node(labels: ["a"])
+        
+        graph.add(nodeX)
+        graph.add(proxy)
+        graph.add(nodeA)
+        
+        graph.connect(proxy: proxy, representing: nodeA)
+        let originalLink = graph.connect(from: proxy,
+                                         to: nodeX,
+                                         labels: [IndirectionLabel.IndirectOrigin])
+
+        let new = rewriter.rewrite() {
+            context in
+            context.proposed.set(label: "aliasY")
+            context.proposed.origin.set(label: "aliasY")
+            return nil
+        }
+
+        let incoming = new.link(originalLink.id)!
+        let newA = new.node(nodeA.id)!
+        let newX = new.node(nodeX.id)!
+
+        XCTAssertIdentical(incoming.target, newX)
+        XCTAssertTrue(incoming.contains(label: "aliasY"))
+
+        XCTAssertIdentical(incoming.origin, newA)
+        XCTAssertTrue(newA.contains(label: "aliasY"))
+    }
+    func testRewriteReplaceProposedLink() throws {
+        let nodeX = Node(labels: ["x"])
+        let proxy = Node(labels: ["y"], role: .proxy)
+        let nodeA = Node(labels: ["a"])
+        
+        graph.add(nodeX)
+        graph.add(proxy)
+        graph.add(nodeA)
+        
+        graph.connect(proxy: proxy, representing: nodeA)
+        let originalLink = graph.connect(from: proxy,
+                                         to: nodeX,
+                                         labels: [IndirectionLabel.IndirectOrigin])
+
+        let new = rewriter.rewrite() {
+            context in
+            return Link(origin: context.proposed.origin,
+                        target: context.proposed.target,
+                        labels: ["somethingNew"],
+                        id: 1000)
+        }
+
+        XCTAssertNil(new.link(originalLink.id))
+
+        let link = new.link(1000)!
+
+        XCTAssertEqual(link.labels, ["somethingNew"])
+        XCTAssertEqual(link.id, 1000)
     }
 
 }
@@ -361,11 +377,4 @@ final class IndirectionConstraintsTests: XCTestCase, ConstraintTestProtocol {
         assertConstraintViolation("indirect_target_is_proxy")
     }
     
-    func test_TODO__NAME_THIS_TEST_FOR_ALIAS() throws {
-        //
-        // node(uses: "y") <--i-- proxy(name: "y") <-- inner(name: "x")
-        //
-        // Test to get a value from within a holon
-
-    }
 }

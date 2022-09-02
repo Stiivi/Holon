@@ -50,7 +50,7 @@ final class GraphTests: XCTestCase {
         let b = Node()
         graph.add(b)
         
-        var link = graph.connect(from: a, to: b)
+        let link = graph.connect(from: a, to: b)
         
         XCTAssertEqual(graph.links.count, 1)
         graph.disconnect(link: link)

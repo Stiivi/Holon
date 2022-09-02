@@ -8,6 +8,10 @@
 import XCTest
 @testable import Holon
 
+/// A protocol for testing constraints using ConstraintChecker.
+///
+/// Default implementation of the methods is provided.
+/// 
 protocol ConstraintTestProtocol {
     var graph: Graph! { get }
     var checker: ConstraintChecker! { get }

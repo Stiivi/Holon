@@ -67,12 +67,6 @@ public class Graph: MutableGraphProtocol {
     /// List of links in the graph.
     public private(set) var links: [Link]
     
-    /// List of top-level holons – those holons that have no parent.
-    ///
-    public var topLevelHolons: [Node] { nodes.filter { $0.holon == nil } }
-
-    public var allHolons: [Node] { nodes.filter { $0.isHolon } }
-
     /// Publisher of graph changes before they are applied. The associated
     /// graph object and the graph are in their original state.
     ///
@@ -173,9 +167,6 @@ public class Graph: MutableGraphProtocol {
     /// Removes node from the graph and removes all incoming and outgoing links
     /// for that node.
     ///
-    /// If the node to be removed is a holon, all holon's children will become
-    /// top-level nodes in the holon hierarchy.
-    ///
     /// - Returns: List of links that were disconnected and list of nodes that
     ///            were removed in addition to the node requested. (The
     ///            requested node is not included in the returned list)
@@ -183,6 +174,10 @@ public class Graph: MutableGraphProtocol {
     /// - Note: The caller becomes owner of the returned nodes and links.
     ///
     /// - Precondition: Node must belong to the graph.
+    ///
+    /// - Important: If using the Holon or Indirection pattern, removing a node
+    ///   might break graph integrity. This is a low-level node removal. To
+    ///   remove holon node see ``removeHolon(_:)`` or ``dissolveHolon(_:)``.
     ///
     @discardableResult
     public func remove(_ node: Node) -> [Link] {
@@ -341,6 +336,9 @@ public class Graph: MutableGraphProtocol {
     ///   node.
     ///
     public func outgoing(_ origin: Node) -> [Link] {
+        precondition(origin.graph === self,
+                     "Trying to get outgoing links from a node that is not associated with the graph.")
+
         let result: [Link]
         
         result = self.links.filter {
@@ -367,6 +365,9 @@ public class Graph: MutableGraphProtocol {
     ///   node.
     ///
     public func incoming(_ target: Node) -> [Link] {
+        precondition(target.graph === self,
+                     "Trying to get incoming links from a node that is not associated with the graph.")
+
         let result: [Link]
         
         result = self.links.filter {
@@ -385,6 +386,9 @@ public class Graph: MutableGraphProtocol {
     /// - Complexity: O(n). All links are traversed.
     ///
     public func neighbours(_ node: Node) -> [Link] {
+        precondition(node.graph === self,
+                     "Trying to get neighbor links from a node that is not associated with the graph.")
+
         let result: [Link]
         
         result = self.links.filter {
@@ -402,9 +406,7 @@ public class Graph: MutableGraphProtocol {
     /// - Complexity: O(n). All links are traversed.
     ///
     public func isSink(_ node: Node) -> Bool {
-        guard node.graph === self else {
-            fatalError("Node is not associated with this graph.")
-        }
+        precondition(node.graph === self, "Node is not associated with this graph.")
         return links.contains { $0.origin === node }
     }
     
@@ -415,9 +417,7 @@ public class Graph: MutableGraphProtocol {
     /// - Complexity: O(n). All links are traversed.
     ///
     public func isSource(_ node: Node) -> Bool {
-        guard node.graph === self else {
-            fatalError("Node is not associated with this graph.")
-        }
+        precondition(node.graph === self, "Node is not associated with this graph.")
         return links.contains { $0.target === node }
     }
     
@@ -428,9 +428,7 @@ public class Graph: MutableGraphProtocol {
     /// - Complexity: O(n). All links are traversed.
     ///
     public func isOrphan(_ node: Node) -> Bool {
-        guard node.graph === self else {
-            fatalError("Node is not associated with this graph.")
-        }
+        precondition(node.graph === self, "Node is not associated with this graph.")
         return links.contains { $0.origin === node || $0.target === node }
     }
 

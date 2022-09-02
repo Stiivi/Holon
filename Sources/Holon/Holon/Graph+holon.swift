@@ -6,6 +6,12 @@
 //
 
 extension Graph {
+    /// List of top-level holons – those holons that have no parent.
+    ///
+    public var topLevelHolons: [Node] { nodes.filter { $0.holon == nil } }
+
+    public var allHolons: [Node] { nodes.filter { $0.isHolon } }
+
     /// Connects a node to its parent holon.
     ///
     /// Creates a properly annotated link between a node and holon that will

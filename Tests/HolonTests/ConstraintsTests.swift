@@ -170,7 +170,7 @@ final class TestLinkLabelsRequirement: XCTestCase {
             link: nil
         )
         
-        let invalid = requirement.check(graph.links).map { $0 as! Link }
+        let invalid = requirement.check(graph.links)
         
         XCTAssertEqual(invalid.count, 1)
         XCTAssertTrue(invalid.contains(invalidLink))

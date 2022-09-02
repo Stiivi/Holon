@@ -61,11 +61,13 @@ public class Graph: MutableGraphProtocol {
     //
     // MARK: - Instance variables
     
+    var _nodes: [OID:Node] = [:]
+    var _links: [OID:Link] = [:]
     /// List of nodes in the graph.
-    public private(set) var nodes: [Node]
+    public var nodes: [Node] { Array(_nodes.values) }
     
     /// List of links in the graph.
-    public private(set) var links: [Link]
+    public var links: [Link] { Array(_links.values) }
     
     /// Publisher of graph changes before they are applied. The associated
     /// graph object and the graph are in their original state.
@@ -95,7 +97,10 @@ public class Graph: MutableGraphProtocol {
         guard nodes.allSatisfy({ $0.graph == nil }) else {
             preconditionFailure("Nodes must not be associated with any graph")
         }
-        self.nodes = nodes
+        for node in nodes {
+            assert(_nodes[node.id] == nil)
+            _nodes[node.id] = node
+        }
 
         guard links.allSatisfy({ $0.graph == nil }) else {
             preconditionFailure("Links must not be associated with any graph")
@@ -105,7 +110,10 @@ public class Graph: MutableGraphProtocol {
             preconditionFailure("Links endpoints must be in the provided list of nodes")
         }
 
-        self.links = links
+        for link in links {
+            assert(_links[link.id] == nil)
+            _links[link.id] = link
+        }
     }
     
     // MARK: - Query
@@ -120,9 +128,9 @@ public class Graph: MutableGraphProtocol {
     ///
     ///
     public func contains(node: Node) -> Bool {
-        return nodes.contains { $0 === node }
+        return node.graph === self && _nodes[node.id] != nil
     }
-
+    
     /// Check whether the graph contains a link and whether the node is valid.
     ///
     /// - Returns: `true` if the graph contains the link.
@@ -130,8 +138,26 @@ public class Graph: MutableGraphProtocol {
     /// - Note: Link comparison is based on its identity.
     ///
     public func contains(link: Link) -> Bool {
-        return links.contains { $0 === link }
+        return link.graph === self && _links[link.id] != nil
     }
+
+    /// Get a node by ID.
+    ///
+    /// If id is `nil` then returns nil.
+    ///
+    public func node(_ id: Object.ID) -> Node? {
+        return _nodes[id]
+    }
+
+    /// Get a link by ID.
+    ///
+    /// If id is `nil` then returns nil.
+    ///
+    public func link(_ id: Object.ID) -> Link? {
+        return _links[id]
+    }
+
+
 
     // MARK: - Mutation
     
@@ -149,17 +175,19 @@ public class Graph: MutableGraphProtocol {
     ///     - node: Node to be added to the graph.
     ///
     /// - Precondition: Node must not belong to any graph.
+    /// - Precondition: Graph must not have a node with the same ID.
     ///
     public func add(_ node: Node) {
         precondition(node.graph == nil, "Trying to associate already associated node: \(node)")
-        
+        precondition(_nodes[node.id] == nil, "The graph already contains a node with id '\(node.id)'.")
+
         node.graph = self
 
         let change = GraphChange.addNode(node)
         willChange(change)
         
         // Associate the node
-        nodes.append(node)
+        _nodes[node.id] = node
         
         didChange(change)
     }
@@ -182,8 +210,6 @@ public class Graph: MutableGraphProtocol {
     @discardableResult
     public func remove(_ node: Node) -> [Link] {
         precondition(node.graph === self, "Trying to remove a node that does not belong to the graph")
-        // FIXME: This is getting complicated
-        // FIXME: IMPORTANT: When removing a port represented object, graph becomes inconsistent because the pseudo-link remains
 
         var disconnected: [Link] = []
         
@@ -198,7 +224,7 @@ public class Graph: MutableGraphProtocol {
             }
         }
 
-        nodes.removeAll { $0 === node}
+        _nodes[node.id] = nil
         node.graph = nil
 
         didChange(change)
@@ -256,7 +282,7 @@ public class Graph: MutableGraphProtocol {
         willChange(change)
 
         link.graph = self
-        links.append(link)
+        _links[link.id] = link
         didChange(change)
         
         return link
@@ -275,16 +301,20 @@ public class Graph: MutableGraphProtocol {
     ///
     ///     - link: Link to be added to the graph.
     ///
+    /// - Precondition: Link must not be associated with any graph.
+    /// - Precondition: Graph must not have a link with the same ID.
+    ///
     public func add(_ link: Link) {
         precondition(link.graph == nil,
                      "Trying to associate already associated link: \(link)")
-        
+        precondition(_links[link.id] == nil, "The graph already contains a link with id '\(link.id)'.")
+
         let change = GraphChange.connect(link)
         willChange(change)
         
         // Register the object
         link.graph = self
-        links.append(link)
+        _links[link.id] = link
         
         didChange(change)
     }
@@ -297,7 +327,11 @@ public class Graph: MutableGraphProtocol {
     ///     - link: Link to be removed.
     ///
     func rawDisconnect(_ link: Link) {
-        links.removeAll { $0 === link }
+        // NOTE: Here we know that the link's graph is us, we do not have to
+        //       check it. Since IDs are unique, we can just use the ID to remove
+        //       the node.
+        //
+        _links[link.id] = nil
         link.graph = nil
     }
     
@@ -450,22 +484,16 @@ public class Graph: MutableGraphProtocol {
     
     /// Create a copy of the graph
     public func copy() -> Graph {
-        // FIXME: IMPORTANT: This needs attention/thinking. What about identities?
-        
         let graph = Graph()
-        var map: [ObjectIdentifier:Node] = [:]
         for node in nodes {
-            let copy = node.copy()
-            map[ObjectIdentifier(node)] = copy
-            graph.add(copy)
+            graph.add(node.copy())
         }
+        // We can use IDs because they are guaranteed to be unique within a
+        // graph
         for link in links {
-            let originID = ObjectIdentifier(link.origin)
-            let targetID = ObjectIdentifier(link.target)
-            graph.connect(from: map[originID]!,
-                          to: map[targetID]!,
-                          labels: link.labels,
-                          id: link.id)
+            let copy = link.copy(origin: graph.node(link.origin.id)!,
+                                 target: graph.node(link.target.id)!)
+            graph.add(copy)
         }
         return graph
     }
@@ -474,7 +502,7 @@ public class Graph: MutableGraphProtocol {
 
 extension Graph: Equatable {
     public static func ==(lhs: Graph, rhs: Graph) -> Bool {
-        return lhs.nodes == rhs.nodes
-                    && lhs.links == rhs.links
+        return lhs._nodes == rhs._nodes
+                    && lhs._links == rhs._links
     }
 }

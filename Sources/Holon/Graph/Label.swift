@@ -27,8 +27,3 @@ extension String {
     ///
     public var isSystemLabel: Bool { return hasPrefix("%")}
 }
-
-public class LabelDescription {
-    
-    
-}

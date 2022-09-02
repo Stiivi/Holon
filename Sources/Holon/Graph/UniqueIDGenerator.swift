@@ -30,8 +30,8 @@ public protocol UniqueIDGenerator {
 ///   
 public class SequentialIDGenerator {
     /// ID as a sequence number.
-    var current: Int
-    var used: Set<Int>
+    var current: OID
+    var used: Set<OID>
     
     /// Creates a sequential ID generator and initializes the sequence to 1.
     public init() {

@@ -12,7 +12,7 @@
 /// cases. Despite most of the functionality might be using the orientation,
 /// it does not prevent one to treat the links as non-oriented.
 ///
-public class Link: Object {
+open class Link: Object {
     
     
     /// Origin node of the link - a node from which the link points from.
@@ -22,7 +22,7 @@ public class Link: Object {
     ///
     public let target: Node
     
-    init(origin: Node, target: Node, labels: LabelSet=[], id: OID? = nil) {
+    public required init(origin: Node, target: Node, labels: LabelSet=[], id: OID? = nil) {
         self.origin = origin
         self.target = target
         super.init(id: id, labels: labels)
@@ -31,6 +31,21 @@ public class Link: Object {
     
     public override var description: String {
         return "Link(id: \(idDebugString), \(origin.idDebugString) -> \(target.idDebugString), labels: \(labels.sorted()))"
+    }
+    
+    /// Create a copy of the link with optionally setting a new origin and/or
+    /// target.
+    ///
+    /// The returned copy is not associated with any graph.
+    ///
+    /// Subclasses should implement this method.
+    ///
+    open func copy(origin: Node? = nil, target: Node? = nil) -> Self {
+        let link = Self(origin: origin ?? self.origin,
+                        target: target ?? self.target,
+                        labels: self.labels,
+                        id: self.id)
+        return link
     }
 }
 extension Link: Hashable {

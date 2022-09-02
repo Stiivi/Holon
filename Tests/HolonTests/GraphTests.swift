@@ -121,8 +121,8 @@ final class GraphTests: XCTestCase {
         
         let copy = graph.copy()
         
-        XCTAssertEqual(copy.nodes, graph.nodes)
-        XCTAssertEqual(copy.links, graph.links)
+        XCTAssertEqual(Set(copy.nodes), Set(graph.nodes))
+        XCTAssertEqual(Set(copy.links), Set(graph.links))
         XCTAssertEqual(copy, graph)
         XCTAssertNotEqual(copy, Graph())
     }

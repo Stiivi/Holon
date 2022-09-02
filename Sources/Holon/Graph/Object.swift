@@ -8,7 +8,7 @@
 /// Type for graph object identifier. There should be no expectation about
 /// the value of the identifier.
 ///
-public typealias OID = Int
+public typealias OID = Object.ID
 
 /// An abstract class representing all objects in a graph. Concrete
 /// kinds of graph objects are ``Node`` and ``Link``.
@@ -21,7 +21,7 @@ public typealias OID = Int
 open class Object: Identifiable, CustomStringConvertible {
     static let defaultIDGenerator = SequentialIDGenerator()
     
-    public typealias ID = OID
+    public typealias ID = UInt64
     // TODO: Lifetime: static, dynamic, ephemeral
     
     /// Graph the object is associated with.

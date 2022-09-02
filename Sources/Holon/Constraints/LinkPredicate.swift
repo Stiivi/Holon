@@ -24,7 +24,10 @@ public protocol LinkPredicate: Predicate {
 extension LinkPredicate {
     // TODO: This is a HACK that assumes I know what I am doing when using this.
     public func match(_ object: Object) -> Bool {
-        match(object as! Link)
+        guard let link = object as? Link else {
+            return false
+        }
+        return match(link)
     }
 }
 

@@ -5,69 +5,6 @@
 //  Created by Stefan Urbanek on 01/09/2022.
 //
 
-// TODO: Is the following statement still true?
-// There is no need to check for these constraints during application lifetime.
-// They are assured by the library.
-//
-/// Constraints to be checked on all graphs that has been imported from the
-/// outside.
-///
-public let IndirectionConstraints: [Constraint] = [
-
-    // MARK: - Proxy and Indirection Constraints
-    //
-    NodeConstraint(
-        name: "proxy_single_subject",
-        description: """
-                     A proxy must have exactly one subject.
-                     """,
-        match: LabelPredicate(all: Node.ProxyLabel),
-        requirement: UniqueNeighbourRequirement(Node.SubjectSelector,
-                                                required: true)
-    ),
-
-    LinkConstraint(
-        name: "subject_link_origin_is_proxy",
-        description: """
-                     Origin of the proxy-subject link must be a proxy.
-                     """,
-        match: LabelPredicate(all: Link.SubjectLabel),
-        requirement: LinkLabelsRequirement(
-            origin: LabelPredicate(all: Node.ProxyLabel),
-            target: nil,
-            link: nil
-        )
-    ),
-    
-    LinkConstraint(
-        name: "indirect_origin_is_proxy",
-        description: """
-                     All links that are marked as having indirect origin must
-                     have their origin to be a proxy.
-                     """,
-        match: LabelPredicate(all: Link.IndirectOriginLabel),
-        requirement: LinkLabelsRequirement(
-            origin: LabelPredicate(all: Node.ProxyLabel),
-            target: nil,
-            link: nil
-        )
-    ),
-    
-    LinkConstraint(
-        name: "indirect_target_is_proxy",
-        description: """
-                     All links that are marked as having indirect target must
-                     have their target to be a proxy.
-                     """,
-        match: LabelPredicate(all: Link.IndirectTargetLabel),
-        requirement: LinkLabelsRequirement(
-            origin: nil,
-            target: LabelPredicate(all: Node.ProxyLabel),
-            link: nil
-        )
-    ),
-
-]
 
 // MARK: - Holon Constraints
 //

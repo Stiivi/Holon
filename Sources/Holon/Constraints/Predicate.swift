@@ -51,6 +51,15 @@ public class LabelPredicate: NodePredicate, LinkPredicate  {
         self.mode = mode
     }
     
+    // FIXME: See Predicate comment about rewriting
+    public func match(_ object: Object) -> Bool {
+        switch mode {
+        case .all: return object.contains(labels: labels)
+        case .any: return !labels.intersection(object.labels).isEmpty
+        case .none: return labels.intersection(object.labels).isEmpty
+        }
+    }
+
     public func match(_ node: Node) -> Bool {
         switch mode {
         case .all: return node.contains(labels: labels)

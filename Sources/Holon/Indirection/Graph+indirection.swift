@@ -46,7 +46,7 @@ extension Graph {
         
         return connect(from: proxy,
                        to: target,
-                       labels: labels.union([Link.SubjectLabel]),
+                       labels: labels.union([IndirectionLabel.Subject]),
                        id: id)
     }
 
@@ -59,13 +59,13 @@ extension Graph {
                                 id: OID?=nil) -> Link {
         let additionalLabels: LabelSet
         if origin.isProxy && target.isProxy {
-            additionalLabels = Set([Link.IndirectOriginLabel, Link.IndirectTargetLabel])
+            additionalLabels = Set([IndirectionLabel.IndirectOrigin, IndirectionLabel.IndirectTarget])
         }
         else if origin.isProxy {
-            additionalLabels = Set([Link.IndirectOriginLabel])
+            additionalLabels = Set([IndirectionLabel.IndirectOrigin])
         }
         else if target.isProxy {
-            additionalLabels = Set([Link.IndirectTargetLabel])
+            additionalLabels = Set([IndirectionLabel.IndirectTarget])
         }
         else {
             additionalLabels = Set()

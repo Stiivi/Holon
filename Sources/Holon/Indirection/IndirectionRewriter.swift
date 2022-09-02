@@ -165,7 +165,7 @@ public class IndirectionRewriter {
                     followAgain = true
                 }
                 else {
-                    labels.remove(Link.IndirectOriginLabel)
+                    labels.remove(IndirectionLabel.IndirectOrigin)
                 }
                 originSubjectLink = subjectLink
             }
@@ -188,7 +188,7 @@ public class IndirectionRewriter {
                     followAgain = true
                 }
                 else {
-                    labels.remove(Link.IndirectTargetLabel)
+                    labels.remove(IndirectionLabel.IndirectTarget)
                 }
                 
                 targetSubjectLink = subjectLink
@@ -229,4 +229,14 @@ public class IndirectionRewriter {
         
         return graph
     }
+    
+    /// Get a path from a proxy node to the real subject. Real subject is a
+    /// node that is referenced by a direct subject link.
+    ///
+    /// The function follows all indirect links from the provided proxy node
+    /// until it finds a subject link that direct.
+    ///
+//    public func realSubjectPath(node: Node) -> Path {
+//        
+//    }
 }

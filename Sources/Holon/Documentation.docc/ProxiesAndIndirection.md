@@ -88,7 +88,7 @@ constraints.
 ### Functionality
 
 - ``IndirectionRewriter``
-- ``IndirectionConstraints``
+- ``IndirectionConstraint``
 
 ### System Node and Link Labels
 

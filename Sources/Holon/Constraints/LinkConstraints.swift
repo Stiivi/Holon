@@ -104,7 +104,7 @@ public class LinkLabelsRequirement: LinkConstraintRequirement {
         
         self.originLabels = origin
         self.targetLabels = target
-        self.linkLabels = target
+        self.linkLabels = link
     }
     
     public func check(_ links: [Link]) -> [Link] {

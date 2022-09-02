@@ -9,13 +9,25 @@
 ///
 /// Objects conforming to this protocol are expected to implement the method `match()`
 ///
-public protocol NodePredicate {
+public protocol NodePredicate: Predicate {
     /// Tests a node whether it matches the predicate.
     ///
     /// - Returns: `true` if the node matches.
     ///
     func match(_ node: Node) -> Bool
 }
+
+// TODO: Reason: see generics rant in Predicate.swift
+extension NodePredicate {
+    // TODO: This is a HACK that assumes I know what I am doing when using this.
+    public func match(_ object: Object) -> Bool {
+        guard let node = object as? Node else {
+            return false
+        }
+        return match(node)
+    }
+}
+
 
 /// Predicate that matches any node.
 ///

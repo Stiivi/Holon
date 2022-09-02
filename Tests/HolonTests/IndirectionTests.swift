@@ -47,7 +47,7 @@ final class IndirectionRewriterTests: XCTestCase {
         
         let indirectLink = graph.connect(from: origin,
                                          to: proxy,
-                                         labels: [Link.IndirectTargetLabel],
+                                         labels: [IndirectionLabel.IndirectTarget],
                                          id: 1)
 
         let new = rewriter.rewrite()
@@ -82,11 +82,11 @@ final class IndirectionRewriterTests: XCTestCase {
         
         let indirect1 = graph.connect(from: origin,
                                       to: proxy,
-                                      labels: [Link.IndirectTargetLabel, "one"],
+                                      labels: [IndirectionLabel.IndirectTarget, "one"],
                                       id: 1)
         let indirect2 = graph.connect(from: origin,
                                       to: proxy,
-                                      labels: [Link.IndirectTargetLabel, "two"],
+                                      labels: [IndirectionLabel.IndirectTarget, "two"],
                                       id: 2)
 
         let new = rewriter.rewrite()
@@ -168,11 +168,11 @@ final class IndirectionRewriterTests: XCTestCase {
         graph.add(proxy2)
 
         graph.connect(proxy: proxy2, representing: target)
-        graph.connect(proxy: proxy1, representing: proxy2, labels: [Link.IndirectTargetLabel])
+        graph.connect(proxy: proxy1, representing: proxy2, labels: [IndirectionLabel.IndirectTarget])
 
         let indirectLink = graph.connect(from: origin,
                                          to: proxy1,
-                                         labels: [Link.IndirectTargetLabel],
+                                         labels: [IndirectionLabel.IndirectTarget],
                                          id: 1)
 
         let new = rewriter.rewrite()
@@ -203,7 +203,7 @@ final class IndirectionRewriterTests: XCTestCase {
 
         let indirectLink = graph.connect(from: origin,
                                          to: proxy1,
-                                         labels: [Link.IndirectTargetLabel],
+                                         labels: [IndirectionLabel.IndirectTarget],
                                          id: 1)
 
         let new = rewriter.rewrite()
@@ -223,7 +223,7 @@ final class IndirectionConstraintsTests: XCTestCase, ConstraintTestProtocol {
     
     override func setUp() {
         graph = Graph()
-        checker = ConstraintChecker(constraints: IndirectionConstraints)
+        checker = ConstraintChecker(constraints: IndirectionConstraint.All)
     }
     
     func testSanity() throws {
@@ -249,15 +249,15 @@ final class IndirectionConstraintsTests: XCTestCase, ConstraintTestProtocol {
         graph.add(proxy)
 
         // No subject here
-        assertConstraintViolation("proxy_single_subject")
+        assertConstraintViolation("proxy_has_single_subject")
 
         // Just right
-        graph.connect(from: proxy, to: node, labels: [Link.SubjectLabel])
+        graph.connect(from: proxy, to: node, labels: [IndirectionLabel.Subject])
         assertNoViolation()
 
         // Too many subjects here
-        graph.connect(from: proxy, to: node, labels: [Link.SubjectLabel])
-        assertConstraintViolation("proxy_single_subject")
+        graph.connect(from: proxy, to: node, labels: [IndirectionLabel.Subject])
+        assertConstraintViolation("proxy_has_single_subject")
     }
     
     func testSubjectLinkOriginIsProxy() throws {
@@ -266,9 +266,8 @@ final class IndirectionConstraintsTests: XCTestCase, ConstraintTestProtocol {
         graph.add(node)
         graph.add(other)
 
-        graph.connect(from: node, to: other, labels: [Link.SubjectLabel])
-        assertConstraintViolation("subject_link_origin_is_proxy")
-
+        graph.connect(from: node, to: other, labels: [IndirectionLabel.Subject])
+        assertConstraintViolation("subject_link_origin_is_direct_proxy")
     }
     
     func testSubjectIndirectEndpointIsProxy() throws {
@@ -282,13 +281,13 @@ final class IndirectionConstraintsTests: XCTestCase, ConstraintTestProtocol {
         
         let originLink = graph.connect(from: origin,
                                        to: target,
-                                       labels: [Link.IndirectOriginLabel])
+                                       labels: [IndirectionLabel.IndirectOrigin])
         assertConstraintViolation("indirect_origin_is_proxy")
 
         graph.disconnect(link: originLink)
         graph.connect(from: origin,
                         to: target,
-                    labels: [Link.IndirectTargetLabel])
+                    labels: [IndirectionLabel.IndirectTarget])
         assertConstraintViolation("indirect_target_is_proxy")
     }
     

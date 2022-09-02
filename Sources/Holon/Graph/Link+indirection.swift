@@ -8,13 +8,25 @@
 // TODO: CONSTRAINT: Subject link origin must be proxy
 
 extension Link {
+    /// Label for a link indicating that the target of the link is indirect.
+    /// The target must be a proxy node (see ``Node/ProxyLabel``).
+    ///
     public static let IndirectTargetLabel = "%indirect-target"
+
+    /// Label for a link indicating that the origin of the link is indirect.
+    /// The origin must be a proxy node (see ``Node/ProxyLabel``).
+    ///
     public static let IndirectOriginLabel = "%indirect-origin"
     
     /// Label for links from a proxy node to potentially real node.
     /// Links with this label are expected to have a proxy node as origin.
+    ///
+    /// See also: ``IndirectionConstraints``
+    ///
     public static let SubjectLabel = "%subject"
     
+    /// Flag denoting whether at least one of the link's endpoints is indirect.
+    ///
     public var isIndirect: Bool { hasIndirectOrigin || hasIndirectTarget }
 
     /// Flag whether to interpret the origin node as indirect.

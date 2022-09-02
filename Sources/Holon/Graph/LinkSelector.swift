@@ -1,5 +1,5 @@
 //
-//  LabelledLinkType.swift
+//  LinkSelector.swift
 //  
 //
 //  Created by Stefan Urbanek on 17/01/2022.
@@ -24,20 +24,6 @@ public enum LinkDirection {
         }
     }
 }
-
-/*
-
- String representation
- 
- labelAttribute:label
- 
- examples:
- 
- - "label:item"
- - "label:thing"
- - "!label:thing" -> reversed
-
- */
 
 /// Describes links that have a label attribute.
 ///

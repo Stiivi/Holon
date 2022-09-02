@@ -8,6 +8,14 @@
 // FIXME: Move this to Node.swift
 extension Node {
     /// Label for a node that represents a proxy.
+    ///
+    /// Nodes that represent a proxy are expected to have exactly one
+    /// link to the proxy subject. The proxy is the origin and the subject
+    /// is the target of the link. The link must have ``Link/SubjectLabel`` label
+    /// set.
+    ///
+    /// See also: ``IndirectionConstraints``
+    ///
     public static let ProxyLabel = "%proxy"
 
     /// A link selector that matches a link from a proxy to its subject.

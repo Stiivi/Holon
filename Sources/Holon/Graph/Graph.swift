@@ -54,12 +54,11 @@
 ///
 public class Graph: MutableGraphProtocol {
     // Potential generic parameters:
-    // class Graph<N,L> where N:Identifiable, L:Hashable
+    // class Graph<N,L> where N:Identifiable, L:Hashable, Identifiable
     // typealias Node: N
     // typealias Label: L
     // typealias OID: N.ID
     //
-    // TODO: Rename to GraphWorld?
     // MARK: - Instance variables
     
     /// List of nodes in the graph.

@@ -44,27 +44,20 @@ Not suitable applications:
 
 ## Topics
 
-### Core
+### Graph
 
-- ``Graph``
-- ``GraphProtocol``
-- ``MutableGraphProtocol``
-- ``Node``
-- ``Link``
-- ``Object``
-- ``Path``
-- ``LinkSelector``
-- ``KeyedValues``
-- ``Label``
-- ``LabelSet``
-- ``LinkDirection``
-- ``OID``
+Graph is an object that represents a mutable oriented labelled graph structure.
+It is composed of nodes and links between the nodes. Graph and
+associated structures are the core of the Holon library.
+
+- <doc:GraphCore>
+
+
 
 
 ### Proxies and Indirection
 
-- ``IndirectionRewriter``
-- ``IndirectionConstraints``
+- <doc:ProxiesAndIndirection>
 
 
 ### Holons
@@ -75,35 +68,12 @@ Not suitable applications:
 
 ### Predicates
 
-- ``Predicate``
-- ``CompoundPredicate``
-- ``NegationPredicate``
-
-- ``LabelPredicate``
-
-- ``NodePredicate``
-- ``AnyNodePredicate``
-
-- ``LinkPredicate``
-- ``LinkObjectPredicate``
-
-- ``LogicalConnective``
+- <doc:Predicates>
 
 ### Constraints and Constraints Checker
 
-- ``ConstraintChecker``
-- ``ConstraintViolation``
-- ``Constraint``
-- ``ObjectConstraintRequirement``
-- ``NodeConstraint``
-- ``NodeConstraintRequirement``
-- ``LinkConstraint``
-- ``LinkConstraintRequirement``
-- ``LinkLabelsRequirement``
-- ``UniqueNeighbourRequirement``
-- ``UniqueProperty``
-- ``AcceptAll``
-- ``RejectAll``
+- <doc:Constraints>
+
 
 ### Import and Export Interfaces
 

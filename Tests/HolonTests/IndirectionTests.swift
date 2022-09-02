@@ -179,8 +179,8 @@ final class IndirectionRewriterTests: XCTestCase {
         let link = new.link(indirectLink.id)!
         XCTAssertEqual(link.origin, origin)
         XCTAssertEqual(link.target, target)
-        // There must be no indirect links left
-        XCTAssertFalse(new.links.contains(where: { $0.isIndirect}))
+        // There must be no indirect links left that are not subjects
+        XCTAssertFalse(new.links.contains(where: { $0.isIndirect && !$0.isSubject}))
     }
     func testDontResolveProxyHop() throws {
         // FROM:

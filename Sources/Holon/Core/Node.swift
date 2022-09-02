@@ -12,10 +12,12 @@
 // constraints and effects.
 //
 // The original design (removed in this iteration) had mutation on the node.
-
+public protocol Copying {
+    func copy() -> Self
+}
 /// Object representing a node of a graph.
 ///
-open class Node: Object {
+open class Node: Object, Copying {
     /// Links outgoing from the node, that is links where the node is the
     /// origin.
     ///
@@ -65,8 +67,9 @@ open class Node: Object {
     
     /// Creates an unassociated copy of the node.
     ///
-    public func copy() -> Node {
-        return Node(id: id, labels: labels)
+    open func copy() -> Self {
+        // FIXME: This is weird required casting
+        return Node(id: id, labels: labels) as! Self
     }
 }
 
@@ -80,4 +83,3 @@ extension Node: Hashable {
         hasher.combine(id)
     }
 }
-

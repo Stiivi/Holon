@@ -60,17 +60,17 @@ public class DotExporter {
                     label = String(describing: value)
                 }
                 else {
-                    label = node.id.map { String($0) } ?? "(no label)"
+                    label = String(node.id)
                 }
             }
             else {
-                label = node.id.map { String($0) } ?? "(no ID)"
+                label = String(node.id)
             }
 
             var attributes = format(node: node)
             attributes["label"] = label
 
-            let id = "\(node.id ?? 0)"
+            let id = "\(node.id)"
             output += formatter.node(id, attributes: attributes)
         }
 
@@ -78,8 +78,8 @@ public class DotExporter {
             let attributes = format(link: link)
             // TODO: Link label
             
-            output += formatter.edge(from:"\(link.origin.id ?? 0)",
-                                     to:"\(link.target.id ?? 0)",
+            output += formatter.edge(from:"\(link.origin.id)",
+                                     to:"\(link.target.id)",
                                      attributes: attributes)
         }
 

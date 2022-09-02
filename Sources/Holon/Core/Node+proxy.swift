@@ -53,7 +53,7 @@ extension Node {
         }
     }
 
-    var isProxy: Bool { contains(label: Node.ProxyLabel) }
+    public var isProxy: Bool { contains(label: Node.ProxyLabel) }
     
     /// Link that is a representation of the proxy node.
     ///

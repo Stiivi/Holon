@@ -27,25 +27,25 @@ public protocol HolonProtocol: GraphProtocol {
     var allPorts: [Node] { get }
 }
 
-public extension HolonProtocol {
+extension HolonProtocol {
     /// List of all holons, including nested one, that are contained in the
     /// graph.
     ///
-    var allHolons: [Node] {
+    public var allHolons: [Node] {
         nodes.filter { $0.isHolon }
     }
 
     /// List of all ports, including nested one, that are contained in the
     /// graph.
     ///
-    var allPorts: [Node] {
+    public var allPorts: [Node] {
         nodes.filter { $0.isProxy }
     }
 }
 
 extension Node {
     /// Flag whether the node is a holon.
-    var isHolon: Bool { contains(label: Node.HolonLabel) }
+    public var isHolon: Bool { contains(label: Node.HolonLabel) }
     
     /// Link between the node and holon that owns the node.
     ///

@@ -19,7 +19,9 @@ public typealias OID = Int
 /// constraints or validations for the attributes of graph objects.
 ///
 open class Object: Identifiable, CustomStringConvertible {
+    static let defaultIDGenerator = SequentialIDGenerator()
     
+    public typealias ID = OID
     // TODO: Lifetime: static, dynamic, ephemeral
     
     /// Graph the object is associated with.
@@ -32,19 +34,26 @@ open class Object: Identifiable, CustomStringConvertible {
     public internal (set) var labels: LabelSet = []
     
     /// Identifier of the object that is unique within the owning graph.
-    /// The attribute is populated when the object is associated with a graph.
-    /// When the object is disassociate from a graph, the identifier is set to
-    /// `nil`.
     ///
-    public var id: OID?
-    //    public internal(set) var id: OID?
+    /// The identifier can be set only when the object is not associated
+    /// with a graph. Otherwise it is a serious programming error.
+    ///
+    public var id: OID {
+        willSet(newID) {
+            precondition(graph == nil)
+        }
+    }
     
 
     // TODO: Make this private. Use Holon.create() and Holon.connect()
     /// Create an empty object. The object needs to be associated with a graph.
     ///
+    /// If the ID is not provided, one will be assigned. The assigned ID is
+    /// assumed to be unique for every object created without explicit ID,
+    /// however it is not assumed to be unique with explicitly provided IDs.
+    ///
     public init(id: OID?=nil, labels: LabelSet=[]) {
-        self.id = id
+        self.id = id ?? Object.defaultIDGenerator.next()
         self.labels = labels
     }
 
@@ -85,13 +94,9 @@ open class Object: Identifiable, CustomStringConvertible {
     
     /// String representing the object's ID for debugging purposes - either the
     /// object ID or ObjectIdentifier of the object
-    var idDebugString: String {
-        if let id = id {
-            return String(id)
-        }
-        else {
-            return String(describing: ObjectIdentifier(self))
-        }
+    public var idDebugString: String {
+        // TODO: This method is no longer needed
+        return String(id)
     }
     
     // MARK: - Prototyping/Experimental

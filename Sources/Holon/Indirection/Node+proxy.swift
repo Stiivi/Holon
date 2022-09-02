@@ -25,4 +25,35 @@ extension Node {
     ///
     public var subject: Node? { subjectLink?.target }
     
+    /// Get a path from a proxy node to the real subject. Real subject is a
+    /// node that is referenced by a direct subject link.
+    ///
+    /// The function follows all indirect links from the provided proxy node
+    /// until it finds a subject link that direct.
+    ///
+    /// - Precondition: Node must be a proxy.
+    ///
+    public func realSubjectPath() -> Path {
+        precondition(isProxy)
+        
+        var current = self
+        var trail: [Link] = []
+        
+        while true {
+            guard let link = current.subjectLink else {
+                break
+            }
+            
+            trail.append(link)
+            
+            if link.hasIndirectTarget {
+                current = link.target
+            }
+            else {
+                break
+            }
+        }
+        
+        return Path(trail)
+    }
 }

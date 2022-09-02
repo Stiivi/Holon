@@ -127,3 +127,31 @@ final class GraphTests: XCTestCase {
         XCTAssertNotEqual(copy, Graph())
     }
 }
+
+final class PathTests: XCTestCase {
+    let graph: Graph = Graph()
+    
+    func testPathIsValid() {
+        let node1 = Node()
+        let node2 = Node()
+        let node3 = Node()
+        
+        graph.add(node1)
+        graph.add(node2)
+        graph.add(node3)
+
+        let link1 = graph.connect(from: node1, to: node2)
+        let link2 = graph.connect(from: node2, to: node3)
+        let link3 = graph.connect(from: node3, to: node3)
+        let link4 = graph.connect(from: node3, to: node3)
+
+        XCTAssertFalse(Path.isValid([]))
+        XCTAssertTrue(Path.isValid([link1]))
+        
+        XCTAssertTrue(Path.isValid([link1, link2, link3, link4]))
+        XCTAssertTrue(Path.isValid([link4, link4, link4, link4]))
+        
+        XCTAssertFalse(Path.isValid([link1, link3]))
+        XCTAssertFalse(Path.isValid([link4, link4, link1]))
+    }
+}

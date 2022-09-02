@@ -57,6 +57,7 @@ extension Graph {
                                 to target: Node,
                                 labels: LabelSet=[],
                                 id: OID?=nil) -> Link {
+        // TODO: Check for cycles
         let additionalLabels: LabelSet
         if origin.isProxy && target.isProxy {
             additionalLabels = Set([IndirectionLabel.IndirectOrigin, IndirectionLabel.IndirectTarget])

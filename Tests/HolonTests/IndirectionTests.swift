@@ -8,6 +8,76 @@
 import XCTest
 @testable import Holon
 
+final class NodeIndirectionTests: XCTestCase {
+    let graph: Graph = Graph()
+
+    func testIsProxy() throws {
+        let regular = Node(labels: ["regular"])
+        let proxy = Node(labels: ["proxy"], role: .proxy)
+        
+        XCTAssertFalse(regular.isProxy)
+        XCTAssertTrue(proxy.isProxy)
+    }
+    
+    func testSubjectLink() throws {
+        let target = Node(labels: ["target"])
+        let proxy1 = Node(labels: ["proxy1"], role: .proxy)
+        let proxy2 = Node(labels: ["proxy2"], role: .proxy)
+
+        graph.add(target)
+        graph.add(proxy1)
+        graph.add(proxy2)
+
+        graph.connect(from: proxy1, to: target)
+        let link2 = graph.connect(proxy: proxy2, representing: target)
+
+        XCTAssertNil(target.subjectLink)
+        XCTAssertNil(proxy1.subjectLink)
+        XCTAssertIdentical(proxy2.subjectLink, link2)
+
+    }
+    
+    func testRealSubjectPath() throws {
+        let target = Node(labels: ["target"])
+        let proxy1 = Node(labels: ["proxy1"], role: .proxy)
+        let proxy2 = Node(labels: ["proxy2"], role: .proxy)
+
+        graph.add(target)
+        graph.add(proxy1)
+        graph.add(proxy2)
+
+        let link2 = graph.connect(proxy: proxy2, representing: target)
+        let link1 = graph.connect(proxy: proxy1, representing: proxy2, labels: [IndirectionLabel.IndirectTarget])
+
+        let path1 = proxy1.realSubjectPath()
+        XCTAssertEqual(path1.links, [link1, link2])
+
+        let path2 = proxy2.realSubjectPath()
+        XCTAssertEqual(path2.links, [link2])
+    }
+    func testRealSubjectPathInterrupted() throws {
+        let target = Node(labels: ["target"])
+        let proxy1 = Node(labels: ["proxy1"], role: .proxy)
+        let proxy2 = Node(labels: ["proxy2"], role: .proxy)
+
+        graph.add(target)
+        graph.add(proxy1)
+        graph.add(proxy2)
+
+        let link2 = graph.connect(proxy: proxy2, representing: target)
+        // Note: This is direct link, it should not be followed further
+        let link1 = graph.connect(proxy: proxy1, representing: proxy2)
+
+        let path1 = proxy1.realSubjectPath()
+        XCTAssertEqual(path1.links, [link1])
+
+        let path2 = proxy2.realSubjectPath()
+        XCTAssertEqual(path2.links, [link2])
+    }
+
+
+}
+
 final class IndirectionRewriterTests: XCTestCase {
     var graph: Graph!
     var rewriter: IndirectionRewriter!
@@ -101,7 +171,7 @@ final class IndirectionRewriterTests: XCTestCase {
         XCTAssertEqual(link2.target, target)
         XCTAssertEqual(link2.labels, ["two"])
     }
-
+    
 //    func testResolveProxyAlias() throws {
 //        // FROM:
 //        //                    |

@@ -8,7 +8,7 @@
 
 /// An object representing a sequence of links.
 ///
-public class Path {
+public class Path: Equatable {
     
     /// List of links that represent the path.
     public internal(set) var links: [Link]
@@ -19,8 +19,8 @@ public class Path {
     /// - Precondition: Path must be valid. See ``Path/isValid(_:)``.
     ///
     public init(_ links: [Link]) {
-        precondition(links.count > 0)
-        precondition(Path.isValid(links))
+        precondition(links.count > 0, "Path must have at least one link")
+        precondition(Path.isValid(links), "Path of links is invalid: \(links)")
         self.links = links
     }
     
@@ -29,16 +29,18 @@ public class Path {
     /// sequence of links.
     ///
     public static func isValid(_ links: [Link]) -> Bool {
-        guard links.count > 1 else {
-            return true
+        guard links.count > 0 else {
+            return false
         }
         
-        var next: Node = links[0].target
-        for link in links {
-            if next !== link.origin {
+        var iterator = links.makeIterator()
+        
+        var current: Link = iterator.next()!
+        while let link = iterator.next() {
+            if current.target !== link.origin {
                 return false
             }
-            next = link.target
+            current = link
         }
         
         return true
@@ -49,6 +51,10 @@ public class Path {
 
     /// Target of the path – target of the very last item in the path.
     public var target: Node { links.last!.target }
+    
+    public static func ==(lhs: Path, rhs: Path) -> Bool {
+        return lhs.links == rhs.links
+    }
 }
 
 extension Path: MutableCollection {

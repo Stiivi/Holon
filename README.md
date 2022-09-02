@@ -15,6 +15,8 @@ Overview of features:
 - Special node/link structures for representing groups and proxies
 - Graph import/export interfaces
 
+Status: Evolving and opinionated.
+
 ## When the Library is Suitable and when it is not?
 
 The library tries to provide functionality where the whole model can be
@@ -42,8 +44,8 @@ Not suitable applications:
 
 ### What is it not?
 
-This library is not a graph database, despite resembling some of the elements of
-it.
+This library is not a graph database neither generic graph library, despite
+having some sort of of resemblance.
 
 ## Features
 

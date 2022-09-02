@@ -11,21 +11,21 @@ to direct links.
 
 ### Proxies
 
-Proxies are nodes that have system label ``Node/ProxyLabel``. Any node can be
+Proxies are nodes that have system label ``IndirectionLabel/Proxy``. Any node can be
 a proxy node. Each proxy node represent another node - its real subject.
 Therefore each proxy node requires a link between the proxy node and its
 subject.
 
 The link between proxy node and its subject has a system label
-``Link/SubjectLabel``, the proxy is the origin of the link and subject is the
+``IndirectionLabel/Subject``, the proxy is the origin of the link and subject is the
 target of the link.
 
 ### Links
 
 Links that are to be interpreted as indirect have endpoints pointing to proxies
 and have the endpoints marked as indirect through appropriate label:
-``Link/IndirectOriginLabel`` is used to mark that the link's origin is indirect,
-``Link/IndirectTargetLabel`` is used to mark that the link's target is indirect.
+``IndirectionLabel/IndirectOrigin`` is used to mark that the link's origin is indirect,
+``IndirectionLabel/IndirectTarget`` is used to mark that the link's target is indirect.
 If an endpoint of a link is a proxy, but the endpoint is not marked as indirect,
 it means that the endpoint is the proxy object itself.
 
@@ -71,7 +71,7 @@ After graph rewriting we will get the same graph.
 When using proxies, the provided functionality, such as rewriting with the
 ``IndirectionRewriter`` requires that the graph follows all the rules around
 indirection. The rules are described as graph constraints and listed in the
-constant list ``IndirectionConstraints``. It is required by the user to
+constant list ``IndirectionConstraint``. It is required by the user to
 follow and/or validate the constraints before using any functionality related
 to indirection. Working with graph violating the constraints is considered
 a programming error. The constraints are not enforced immediately while working
@@ -90,9 +90,6 @@ constraints.
 - ``IndirectionRewriter``
 - ``IndirectionConstraint``
 
-### System Node and Link Labels
+### Constants
 
-- ``Node/ProxyLabel``
-- ``Link/IndirectOriginLabel``
-- ``Link/IndirectTargetLabel``
-- ``Link/SubjectLabel``
+- ``IndirectionLabel``

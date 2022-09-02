@@ -133,8 +133,8 @@ final class HolonConstraintsTests: XCTestCase, ConstraintTestProtocol {
     
     override func setUp() {
         graph = Graph()
-        checker = ConstraintChecker(constraints: HolonConstraints)
-        strictChecker = ConstraintChecker(constraints: StrictHolonConstraints)
+        checker = ConstraintChecker(constraints: HolonConstraint.All)
+        strictChecker = ConstraintChecker(constraints: StrictHolonConstraint.All)
     }
     
     func testSanity() throws {
@@ -151,8 +151,8 @@ final class HolonConstraintsTests: XCTestCase, ConstraintTestProtocol {
         let node = Node()
         graph.add(holon)
         graph.add(node)
-        graph.connect(from: node, to: holon, labels: [Link.HolonLinkLabel])
-        graph.connect(from: node, to: holon, labels: [Link.HolonLinkLabel])
+        graph.connect(from: node, to: holon, labels: [HolonLabel.HolonLink])
+        graph.connect(from: node, to: holon, labels: [HolonLabel.HolonLink])
 
         assertConstraintViolation("single_parent_holon")
     }

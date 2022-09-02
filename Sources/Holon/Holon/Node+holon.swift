@@ -6,46 +6,9 @@
 //
 
 
-/// Protocol for a Holon - a hierarchical structure.
-///
-public protocol HolonProtocol: GraphProtocol {
-    /// List of child holons that belong to the receiver.
-    ///
-    var childHolons: [Node] { get }
-
-    /// List of all holons that belong to the receiver, including holons
-    /// of the children.
-    ///
-    var allHolons: [Node] { get }
-
-    /// List of direct ports of the holon.
-    ///
-    var ports: [Node] { get }
-
-    /// List of all ports of the holon.
-    ///
-    var allPorts: [Node] { get }
-}
-
-extension HolonProtocol {
-    /// List of all holons, including nested one, that are contained in the
-    /// graph.
-    ///
-    public var allHolons: [Node] {
-        nodes.filter { $0.isHolon }
-    }
-
-    /// List of all ports, including nested one, that are contained in the
-    /// graph.
-    ///
-    public var allPorts: [Node] {
-        nodes.filter { $0.isProxy }
-    }
-}
-
 extension Node {
     /// Flag whether the node is a holon.
-    public var isHolon: Bool { contains(label: Node.HolonLabel) }
+    public var isHolon: Bool { contains(label: HolonLabel.Holon) }
     
     /// Link between the node and holon that owns the node.
     ///
@@ -85,8 +48,7 @@ extension Node {
 ///   removed as well, including child holons and their nodes
 ///
 extension Node: HolonProtocol, MutableGraphProtocol {
-    public static let HolonLabel = "%holon"
-    public static let ParentHolonSelector = LinkSelector(Link.HolonLinkLabel,
+    public static let ParentHolonSelector = LinkSelector(HolonLabel.HolonLink,
                                                          direction: .outgoing)
 
     /// List of nodes that belong to the holon directly. The list excludes all

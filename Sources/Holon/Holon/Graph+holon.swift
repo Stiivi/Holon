@@ -18,7 +18,7 @@ extension Graph {
     /// - Precondition: `holon` must not already contain a link to another holon.
     ///
     /// - Note: Preconditions are met if the graph conforms to the
-    /// ``HolonConstraints``.
+    /// ``HolonConstraint``.
     ///
     @discardableResult
     public func connect(node: Node,
@@ -33,7 +33,7 @@ extension Graph {
         
         return connect(from: node,
                        to: holon,
-                       labels: labels.union([Link.HolonLinkLabel]),
+                       labels: labels.union([HolonLabel.HolonLink]),
                        id: id)
     }
     

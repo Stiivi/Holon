@@ -9,19 +9,19 @@
 ///
 public enum IndirectionLabel {
     /// Label for a link indicating that the target of the link is indirect.
-    /// The target must be a proxy node (see ``Node/ProxyLabel``).
+    /// The target must be a proxy node (see ``Proxy``).
     ///
     public static let IndirectTarget = "%indirect-target"
     
     /// Label for a link indicating that the origin of the link is indirect.
-    /// The origin must be a proxy node (see ``Node/ProxyLabel``).
+    /// The origin must be a proxy node (see ``Proxy``).
     ///
     public static let IndirectOrigin = "%indirect-origin"
     
     /// Label for links from a proxy node to potentially real node.
     /// Links with this label are expected to have a proxy node as origin.
     ///
-    /// See also: ``IndirectionConstraints``
+    /// See also: ``IndirectionConstraint``
     ///
     public static let Subject = "%subject"
     
@@ -30,10 +30,10 @@ public enum IndirectionLabel {
     ///
     /// Nodes that represent a proxy are expected to have exactly one
     /// link to the proxy subject. The proxy is the origin and the subject
-    /// is the target of the link. The link must have ``Link/SubjectLabel`` label
+    /// is the target of the link. The link must have ``Subject`` label
     /// set.
     ///
-    /// See also: ``IndirectionConstraints``
+    /// See also: ``IndirectionConstraint``
     ///
     public static let Proxy = "%proxy"
 }

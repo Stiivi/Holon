@@ -53,8 +53,6 @@ associated structures are the core of the Holon library.
 - <doc:GraphCore>
 
 
-
-
 ### Proxies and Indirection
 
 - <doc:ProxiesAndIndirection>
@@ -62,8 +60,7 @@ associated structures are the core of the Holon library.
 
 ### Holons
 
-- ``HolonProtocol``
-- ``HolonConstraints``
+- <doc:HolonHierarchy>
 
 
 ### Predicates
@@ -77,12 +74,7 @@ associated structures are the core of the Holon library.
 
 ### Import and Export Interfaces
 
-- ``DotExporter``
-- ``DotFormatter``
-- ``DotStyle``
-- ``DotLinkStyle``
-- ``DotNodeStyle``
-- ``DotGraphType``
+- <doc:ImportExport>
 
 
 ### Utility

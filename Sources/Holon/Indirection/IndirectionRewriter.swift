@@ -8,7 +8,7 @@
 
 /// A graph rewriter that rewrites indirect links into direct links.
 ///
-/// See ``IndirectionRewriter/rewrite()`` for more information about the
+/// See ``IndirectionRewriter/rewrite(transform:)`` for more information about the
 /// process.
 ///
 public class IndirectionRewriter {
@@ -115,7 +115,7 @@ public class IndirectionRewriter {
     ///         make collections of proxies.
     ///
     /// - Important: To successfully rewrite the indirections, the graph must fulfil
-    ///   indirection constraints. See ``IndirectionConstraints`` for more
+    ///   indirection constraints. See ``IndirectionConstraint`` for more
     ///   information. It is up to the caller to make sure that the graph
     ///   is correct. If the constraints are not met, then the function will
     ///   fail with an error.

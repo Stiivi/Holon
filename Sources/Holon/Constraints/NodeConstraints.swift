@@ -82,9 +82,10 @@ public class UniqueNeighbourRequirement: NodeConstraintRequirement {
     }
     
     public func check(_ node: Node) -> Bool {
-        precondition(node.graph != nil, "Node must be associated with a graph to be checked")
-
-        let links = node.linksWithSelector(linkSelector)
+        guard let graph = node.graph else {
+            preconditionFailure("Node must be associated with a graph to be checked")
+        }
+        let links = graph.neighbours(node, selector: linkSelector)
         
         if isRequired {
             return links.count == 1

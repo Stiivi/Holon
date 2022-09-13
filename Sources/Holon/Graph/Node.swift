@@ -85,27 +85,7 @@ open class Node: Object, Copying {
     public var incoming: [Link] {
         return graph!.incoming(self)
     }
-    
-    /// All the links that are associated somewhat with the node.
-    ///
-    /// It is empty when the node is not associated with a graph.
-    ///
-    public var neighbours: [Link] {
-        return graph!.neighbours(self)
-    }
-    
-    /// Returns links that match the selector `selector`.
-    public func linksWithSelector(_ selector: LinkSelector) -> [Link] {
-        // TODO: Find a better name
-        let links: [Link]
-        switch selector.direction {
-        case .incoming: links = self.incoming
-        case .outgoing: links = self.outgoing
-        }
         
-        return links.filter { $0.contains(label: selector.label) }
-    }
-    
     /// Creates an unassociated copy of the node.
     ///
     open func copy() -> Self {

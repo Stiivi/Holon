@@ -6,21 +6,26 @@
 //
 
 extension Graph {
-    public func applyChange(_ change: GraphChange) {
+    /// Apply the change to a graph and return a list of changes that would
+    /// revert this change if applied in the order as returned.
+    ///
+    public func applyChange(_ change: GraphChange) -> [GraphChange] {
         switch change {
-        // Observed changes
         case let .addNode(node):
-            self.add(node)
+            add(node)
+            return [.removeNode(node)]
+
         case let .removeNode(node):
-            self.remove(node)
-        case let .connect(link):
-            self.add(link)
-        case let .disconnect(link):
-            self.disconnect(link: link)
-//        case let .setAttribute(object, attribute, value):
-//            object[attribute] = value
-//        case let .unsetAttribute(object, attribute):
-//            object[attribute] = nil
+            let removed: [Link] = remove(node)
+            let restore: [GraphChange] = removed.map { .addLink($0) }
+            return [.addNode(node)] + restore
+
+        case let .addLink(link):
+            add(link)
+            return [.removeLink(link)]
+        case let .removeLink(link):
+            disconnect(link: link)
+            return [.addLink(link)]
         }
     }
 }

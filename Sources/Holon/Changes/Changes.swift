@@ -4,7 +4,6 @@
 //
 //  Created by Stefan Urbanek on 2021/11/30.
 //
-
 /// Representation of a change within a graph.
 ///
 /// - Attention: Unused for now.
@@ -20,38 +19,21 @@ public enum GraphChange: Equatable {
 
     // TODO: Add case holonMoved(Holon, to: Holon)
     
-    
-    /// Denotes a change to a graph when a node was added.
+    /// A change that represents node addition.
     ///
     case addNode(Node)
     
-    /// Denotes a change to a graph when a node was removed.
-    ///
-    /// - Note: Node's `graph` property is set to `nil`, since the node
-    /// no longer belongs to the graph.
-    ///
-    /// - Important: It is advised that an observer of this change will not
-    /// change the removed node properties. Some applications might retain
-    /// the node to perform undo cations.
+    /// A change that represents node removal.
     ///
     case removeNode(Node)
 
     /// Denotes a change to a graph when a link was created.
     ///
-    case connect(Link)
+    case addLink(Link)
 
     /// Denotes a change to a graph when a link was removed.
     ///
-    /// - Note: The `graph` property of the link is set to `nil`, since the link
-    /// no longer belongs to the graph. The link still points to valid
-    /// origin and target nodes, but they are not guaranteed to have `graph`
-    /// property set either.
-    ///
-    /// - Important: It is advised that an observer of this change will not
-    /// change the removed link properties. Some applications might retain
-    /// the link to perform undo cations.
-    ///
-    case disconnect(Link)
+    case removeLink(Link)
     
     /// Denotes a change to a graph object - either a node or a link - where
     /// an attribute was set to a new, non-nil value.
@@ -73,8 +55,8 @@ public enum GraphChange: Equatable {
         switch self {
         case let .addNode(node): return node === object
         case let .removeNode(node): return node === object
-        case let .connect(link): return link === object || link.origin === object || link.target === object
-        case let .disconnect(link): return link === object || link.origin === object || link.target === object
+        case let .addLink(link): return link === object || link.origin === object || link.target === object
+        case let .removeLink(link): return link === object || link.origin === object || link.target === object
 //        case let .setAttribute(another, _, _): return another === object
 //        case let .unsetAttribute(another, _): return another === object
         }
@@ -87,13 +69,13 @@ public enum GraphChange: Equatable {
     public static func ==(lhs: GraphChange, rhs: GraphChange) -> Bool {
         switch (lhs, rhs) {
         case let (.addNode(lnode), .addNode(rnode)):
-            return lnode == rnode
+            return lnode === rnode
         case let (.removeNode(lnode), .removeNode(rnode)):
-            return lnode == rnode
-        case let (.connect(llink), .connect(rlink)):
-            return llink == rlink
-        case let (.disconnect(llink), .disconnect(rlink)):
-            return llink == rlink
+            return lnode === rnode
+        case let (.addLink(llink), .addLink(rlink)):
+            return llink === rlink
+        case let (.removeLink(llink), .removeLink(rlink)):
+            return llink === rlink
 //        case let (.setAttribute(lobj, lattr, lvalue), .setAttribute(robj, rattr, rvalue)):
 //            return lobj == robj && lattr == rattr && lvalue == rvalue
 //        case let (.unsetAttribute(lobj, lattr), .unsetAttribute(robj, rattr)):

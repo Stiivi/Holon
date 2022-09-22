@@ -278,7 +278,7 @@ public class Graph: MutableGraphProtocol {
         
         let link = Link(origin: origin, target: target, labels: labels, id: id)
         
-        let change = GraphChange.connect(link)
+        let change = GraphChange.addLink(link)
         willChange(change)
 
         link.graph = self
@@ -308,8 +308,10 @@ public class Graph: MutableGraphProtocol {
         precondition(link.graph == nil,
                      "Trying to associate already associated link: \(link)")
         precondition(_links[link.id] == nil, "The graph already contains a link with id '\(link.id)'.")
+        precondition(contains(node: link.origin), "Origin of a link does not belong to the graph")
+        precondition(contains(node: link.target), "Target of a link does not belong to the graph")
 
-        let change = GraphChange.connect(link)
+        let change = GraphChange.addLink(link)
         willChange(change)
         
         // Register the object
@@ -346,7 +348,7 @@ public class Graph: MutableGraphProtocol {
         precondition(link.graph === self,
                      "Trying to disconnect an unassociated link or a link from a different graph")
 
-        let change = GraphChange.disconnect(link)
+        let change = GraphChange.removeLink(link)
         willChange(change)
         rawDisconnect(link)
         didChange(change)

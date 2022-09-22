@@ -73,6 +73,7 @@ extension Node: HolonProtocol, MutableGraphProtocol {
     /// List of holons that are direct children of this holon.
     ///
     public var childHolons: [Node] {
+        // FIXME: This is wrong, remove
         // TODO: Rename to child holons
         incoming.filter { $0.isHolonLink }
             .map { $0.origin }

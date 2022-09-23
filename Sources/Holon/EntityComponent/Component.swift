@@ -109,5 +109,3 @@ public struct ComponentSet {
         }
     }
 }
-
-//    func clone(linkTransform: (inout Link) -> Bool) -> Self

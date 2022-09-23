@@ -14,14 +14,14 @@
 - ``ConstraintChecker``
 - ``ConstraintViolation``
 - ``NodeConstraint``
-- ``LinkConstraint``
+- ``EdgeConstraint``
 
 ### Constraint Requirements
 
 - ``ObjectConstraintRequirement``
 - ``NodeConstraintRequirement``
-- ``LinkConstraintRequirement``
-- ``LinkLabelsRequirement``
+- ``EdgeConstraintRequirement``
+- ``EdgeLabelsRequirement``
 - ``UniqueNeighbourRequirement``
 - ``UniqueProperty``
 - ``AcceptAll``

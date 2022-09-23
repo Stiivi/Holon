@@ -11,7 +11,7 @@ import SystemPackage
 // NOTE: This is simple one-use exporter.
 // TODO: Make this export to a string and make it export by appending content.
 
-/// Object that exports nodes and links into a [GraphViz](https://graphviz.org)
+/// Object that exports nodes and edges into a [GraphViz](https://graphviz.org)
 /// dot language file.
 public class DotExporter {
     /// Path of the file to be exported to.
@@ -45,8 +45,8 @@ public class DotExporter {
         self.style = style
     }
     
-    /// Export nodes and links into the output.
-    public func export(nodes: [Node], links: [Link]) throws {
+    /// Export nodes and edges into the output.
+    public func export(nodes: [Node], edges: [Edge]) throws {
         var output: String = ""
         let formatter = DotFormatter(name: name, type: .directed)
 
@@ -74,12 +74,12 @@ public class DotExporter {
             output += formatter.node(id, attributes: attributes)
         }
 
-        for link in links {
-            let attributes = format(link: link)
-            // TODO: Link label
+        for edge in edges {
+            let attributes = format(edge: edge)
+            // TODO: Edge label
             
-            output += formatter.edge(from:"\(link.origin.id)",
-                                     to:"\(link.target.id)",
+            output += formatter.edge(from:"\(edge.origin.id)",
+                                     to:"\(edge.target.id)",
                                      attributes: attributes)
         }
 
@@ -105,11 +105,11 @@ public class DotExporter {
         return combined
     }
 
-    public func format(link: Link) -> [String:String] {
+    public func format(edge: Edge) -> [String:String] {
         var combined: [String:String] = [:]
         
-        for style in style?.linkStyles ?? [] {
-            if style.predicate.match(link) {
+        for style in style?.edgeStyles ?? [] {
+            if style.predicate.match(edge) {
                 combined.merge(style.attributes) { (_, new) in new}
             }
         }

@@ -12,9 +12,9 @@ Overview of features:
 
 - A directed labelled multi graph with nodes and edges, where both nodes and 
   edges can have multiple labels associated with them.
-- Simple predicates for nodes and edges (links)
+- Simple predicates for nodes and edges
 - Constraint checker, uncoupled
-- Special node/link structures for representing groups and proxies
+- Special node/edge structures for representing groups and proxies
 - Graph import/export interfaces
 
 ### When the Library is Suitable and when it is not?
@@ -24,7 +24,7 @@ represented by a graph with the "Everything is a Graph" perspective.
 
 Suitable applications:
 
-- applications where links need to be first class citizens, not hidden in
+- applications where edges need to be first class citizens, not hidden in
   structures of model entities
 - applications where ad-hoc relationships between virtually any entity in
   the modelled world might exist
@@ -38,7 +38,7 @@ Not suitable applications:
   representation and traversal with richer query functionality
 - problems with very little potential ad-hoc relationships - better
   representable by a relational data model
-- problems where links do not have to be first class citizens – use
+- problems where edgess do not have to be first class citizens – use
   object oriented programming instead with object references as member
   variables
 
@@ -47,7 +47,7 @@ Not suitable applications:
 ### Graph
 
 Graph is an object that represents a mutable oriented labelled graph structure.
-It is composed of nodes and links between the nodes. Graph and
+It is composed of nodes and edges between the nodes. Graph and
 associated structures are the core of the Holon library.
 
 - <doc:GraphCore>

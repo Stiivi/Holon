@@ -8,7 +8,7 @@
 /// Structure that contains information about a violated constraint. The
 /// structure is returned by ``ConstraintChecker/check(graph:)``
 ///
-/// The structure contains a list of nodes and links that violated the
+/// The structure contains a list of nodes and edges that violated the
 /// constraint.
 ///
 ///
@@ -22,9 +22,9 @@ public struct ConstraintViolation: CustomStringConvertible, CustomDebugStringCon
     ///
     public let nodes: [Node]
     
-    /// List of links that the constraint evaluated as being offensive.
+    /// List of edges that the constraint evaluated as being offensive.
     ///
-    public let links: [Link]
+    public let edges: [Edge]
 
     /// Name of the violated constraint. Just a convenience reference to
     /// ``Constraint/name``.
@@ -42,7 +42,7 @@ public struct ConstraintViolation: CustomStringConvertible, CustomDebugStringCon
     }
     
     public var debugDescription: String {
-        "ConstraintViolation(\(name), \(nodes), \(links)"
+        "ConstraintViolation(\(name), \(nodes), \(edges)"
     }
 }
 
@@ -90,14 +90,14 @@ public class ConstraintChecker {
         
         for constraint in constraints {
             // Get the violators
-            let (nodes, links) = constraint.check(graph)
+            let (nodes, edges) = constraint.check(graph)
             
-            if nodes.isEmpty && links.isEmpty {
+            if nodes.isEmpty && edges.isEmpty {
                 continue
             }
             let violation = ConstraintViolation(constraint: constraint,
                                                 nodes: nodes,
-                                                links: links)
+                                                edges: edges)
             violations.append(violation)
 
         }

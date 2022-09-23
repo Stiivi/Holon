@@ -1,11 +1,11 @@
 # Graph
 
-Collection of nodes and links.
+Collection of nodes and edges.
 
 ## Overview
 
 Graph is an object that represents a mutable oriented labelled graph structure.
-It is composed of nodes and links between the nodes. Graph and
+It is composed of nodes and edges between the nodes. Graph and
 associated structures are the core of the Holon library.
 
 ## Topics
@@ -14,7 +14,7 @@ associated structures are the core of the Holon library.
 
 - ``Graph``
 - ``Node``
-- ``Link``
+- ``Edge``
 - ``Object``
 - ``OID``
 
@@ -25,8 +25,8 @@ associated structures are the core of the Holon library.
 
 ### Utility
 
-- ``LinkSelector``
-- ``LinkDirection``
+- ``EdgeSelector``
+- ``EdgeDirection``
 - ``Path``
 
 ### Protocols

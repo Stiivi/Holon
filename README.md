@@ -103,7 +103,7 @@ Proxies and Indirection is an additive, optional functionality for allowing
 the modeller to define concepts such as ports, symbolic links, virtual proxies.
 
 Proxy is a type of a node that has another node associated with it – a subject
-node. An indirect link is a type of a link where either origin or a target or
+node. An indirect link is a type of an edge where either origin or a target or
 both can refer to a proxy.
 
 Using an indirection rewriter the indirection can be rewritten into direct

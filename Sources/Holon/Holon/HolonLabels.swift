@@ -8,10 +8,10 @@
 /// Labels related to the holon hierarchical structures and patterns.
 /// 
 public enum HolonLabel {
-    /// Label for links that link a holon with its child node. The link is
+    /// Label for edges that connect a holon with its child node. The edge is
     /// oriented from the child to the holon.
     ///
-    public static let HolonLink = "%holon"
+    public static let HolonEdge = "%holon"
     
     /// Label for a node that represents a holon.
     ///

@@ -16,16 +16,16 @@ extension Graph {
             return [.removeNode(node)]
 
         case let .removeNode(node):
-            let removed: [Link] = remove(node)
-            let restore: [GraphChange] = removed.map { .addLink($0) }
+            let removed: [Edge] = remove(node)
+            let restore: [GraphChange] = removed.map { .addEdge($0) }
             return [.addNode(node)] + restore
 
-        case let .addLink(link):
-            add(link)
-            return [.removeLink(link)]
-        case let .removeLink(link):
-            disconnect(link: link)
-            return [.addLink(link)]
+        case let .addEdge(edge):
+            add(edge)
+            return [.removeEdge(edge)]
+        case let .removeEdge(edge):
+            disconnect(edge: edge)
+            return [.addEdge(edge)]
         }
     }
 }

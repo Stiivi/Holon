@@ -5,7 +5,7 @@
 //  Created by Stefan Urbanek on 16/06/2022.
 //
 
-// TODO: Merge with LinkConstraint
+// TODO: Merge with EdgeConstraint
 
 /// An object representing constraint that checks nodes.
 ///
@@ -37,10 +37,10 @@ public class NodeConstraint: Constraint {
     /// Check the graph for the constraint and return a list of nodes that
     /// violate the constraint
     ///
-    public func check(_ graph: Graph) -> (nodes: [Node], links: [Link]) {
+    public func check(_ graph: Graph) -> (nodes: [Node], edges: [Edge]) {
         let matched = graph.nodes.filter { match.match($0) }
         let violating = requirement.check(matched)
-        return (nodes: violating, links: [])
+        return (nodes: violating, edges: [])
     }
 }
 
@@ -57,41 +57,41 @@ public protocol NodeConstraintRequirement {
 
 
 public class UniqueNeighbourRequirement: NodeConstraintRequirement {
-    public let linkSelector: LinkSelector
+    public let edgeSelector: EdgeSelector
     public let isRequired: Bool
     
     /// Creates a constraint for unique neighbour.
     ///
     /// If the unique neighbour is required, then the constraint fails if there
-    /// is no neighbour matching the link selector. If the neighbour is not
+    /// is no neighbour matching the edge selector. If the neighbour is not
     /// required, then the constraint succeeds either where there is exactly
     /// one neighbour or when there is none.
     ///
     /// - Parameters:
     ///     - nodeLabels: labels that match the nodes for the constraint
-    ///     - linkSelector: link selector that has to be unique for the matching node
+    ///     - edgeSelector: edge selector that has to be unique for the matching node
     ///     - required: Wether the unique neighbour is required.
     ///
-    public init(_ linkSelector: LinkSelector, required: Bool=false) {
-        self.linkSelector = linkSelector
+    public init(_ edgeSelector: EdgeSelector, required: Bool=false) {
+        self.edgeSelector = edgeSelector
         self.isRequired = required
     }
 
-    public convenience init(_ label: String, direction: LinkDirection = .outgoing, required: Bool=false) {
-        self.init(LinkSelector(label, direction: direction), required: required)
+    public convenience init(_ label: String, direction: EdgeDirection = .outgoing, required: Bool=false) {
+        self.init(EdgeSelector(label, direction: direction), required: required)
     }
     
     public func check(_ node: Node) -> Bool {
         guard let graph = node.graph else {
             preconditionFailure("Node must be associated with a graph to be checked")
         }
-        let links = graph.neighbours(node, selector: linkSelector)
+        let edges = graph.neighbours(node, selector: edgeSelector)
         
         if isRequired {
-            return links.count == 1
+            return edges.count == 1
         }
         else {
-            return links.count == 0 || links.count == 1
+            return edges.count == 0 || edges.count == 1
         }
     }
 

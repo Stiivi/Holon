@@ -61,7 +61,7 @@ final class HolonTests: XCTestCase {
         
         let removed = graph.removeHolon(outer)
         
-        XCTAssertEqual(removed.links.count, 3)
+        XCTAssertEqual(removed.edges.count, 3)
         XCTAssertEqual(removed.nodes.count, 3)
         
         XCTAssertNil(outer.graph)
@@ -151,8 +151,8 @@ final class HolonConstraintsTests: XCTestCase, ConstraintTestProtocol {
         let node = Node()
         graph.add(holon)
         graph.add(node)
-        graph.connect(from: node, to: holon, labels: [HolonLabel.HolonLink])
-        graph.connect(from: node, to: holon, labels: [HolonLabel.HolonLink])
+        graph.connect(from: node, to: holon, labels: [HolonLabel.HolonEdge])
+        graph.connect(from: node, to: holon, labels: [HolonLabel.HolonEdge])
 
         assertConstraintViolation("single_parent_holon")
     }

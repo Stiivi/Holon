@@ -20,6 +20,6 @@
 - ``NodePredicate``
 - ``AnyNodePredicate``
 
-- ``LinkPredicate``
-- ``LinkObjectPredicate``
+- ``EdgePredicate``
+- ``EdgeObjectPredicate``
 - ``LabelPredicate``

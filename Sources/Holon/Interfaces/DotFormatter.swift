@@ -45,7 +45,7 @@ extension Character {
 }
 
 /// Formatter for GraphViz DOT file format statements. Use to produce strings
-/// representing various DOT file parts such as nodes, links and graph headers.
+/// representing various DOT file parts such as nodes, edges and graph headers.
 ///
 public class DotFormatter {
     let name: String

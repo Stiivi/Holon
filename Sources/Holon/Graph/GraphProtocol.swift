@@ -7,7 +7,7 @@
 
 public protocol GraphProtocol {
     var nodes: [Node] { get }
-    var links: [Link] { get }
+    var edges: [Edge] { get }
     /// Check whether the graph contains a node and whether the node is valid.
     ///
     /// - Returns: `true` if the graph contains the node.
@@ -19,71 +19,71 @@ public protocol GraphProtocol {
     ///
     func contains(node: Node) -> Bool
     
-    /// Check whether the graph contains a link and whether the node is valid.
+    /// Check whether the graph contains an edge and whether the node is valid.
     ///
-    /// - Returns: `true` if the graph contains the link.
+    /// - Returns: `true` if the graph contains the edge.
     ///
-    /// - Note: Link comparison is based on its identity.
+    /// - Note: Edge comparison is based on its identity.
     ///
-    func contains(link: Link) -> Bool
+    func contains(edge: Edge) -> Bool
 
-    /// Get a list of outgoing links from a node.
+    /// Get a list of outgoing edges from a node.
     ///
     /// - Parameters:
-    ///     - origin: Node from which the links originate - node is origin
-    ///     node of the link.
+    ///     - origin: Node from which the edges originate - node is origin
+    ///     node of the edge.
     ///
-    /// - Returns: List of links.
+    /// - Returns: List of edges.
     ///
-    /// - Complexity: O(n). All links are traversed.
+    /// - Complexity: O(n). All edges are traversed.
     ///
-    /// - Note: If you want to get both outgoing and incoming links of a node
+    /// - Note: If you want to get both outgoing and incoming edges of a node
     ///   then use ``neighbours(_:)-d13k``. Using ``outgoing(_:)`` + ``incoming(_:)-3rfqk`` might
-    ///   result in duplicates for links that are loops to and from the same
+    ///   result in duplicates for edges that are loops to and from the same
     ///   node.
     ///
-    func outgoing(_ origin: Node) -> [Link]
+    func outgoing(_ origin: Node) -> [Edge]
     
     /// Get a node by ID.
     ///
     func node(_ id: Object.ID) -> Node?
 
-    /// Get a link by ID.
+    /// Get an edge by ID.
     ///
-    func link(_ id: Object.ID) -> Link?
+    func edge(_ id: Object.ID) -> Edge?
 
     
-    /// Get a list of links incoming to a node.
+    /// Get a list of edges incoming to a node.
     ///
     /// - Parameters:
-    ///     - target: Node to which the links are incoming – node is a target
-    ///       node of the link.
+    ///     - target: Node to which the edges are incoming – node is a target
+    ///       node of the edge.
     ///
-    /// - Returns: List of links.
+    /// - Returns: List of edges.
     ///
-    /// - Complexity: O(n). All links are traversed.
+    /// - Complexity: O(n). All edges are traversed.
     ///
-    /// - Note: If you want to get both outgoing and incoming links of a node
+    /// - Note: If you want to get both outgoing and incoming edges of a node
     ///   then use ``neighbours``. Using ``outgoing`` + ``incoming`` might
-    ///   result in duplicates for links that are loops to and from the same
+    ///   result in duplicates for edges that are loops to and from the same
     ///   node.
     ///
 
-    func incoming(_ target: Node) -> [Link]
-    /// Get a list of links that are related to the neighbours of the node. That
-    /// is, list of links where the node is either an origin or a target.
+    func incoming(_ target: Node) -> [Edge]
+    /// Get a list of edges that are related to the neighbours of the node. That
+    /// is, list of edges where the node is either an origin or a target.
     ///
-    /// - Returns: List of links.
+    /// - Returns: List of edges.
     ///
-    /// - Complexity: O(n). All links are traversed.
+    /// - Complexity: O(n). All edges are traversed.
     ///
 
-    func neighbours(_ node: Node) -> [Link]
+    func neighbours(_ node: Node) -> [Edge]
     
-    /// Returns links that are related to the node and that match the given
-    /// link selector.
+    /// Returns edges that are related to the node and that match the given
+    /// edge selector.
     ///
-    func neighbours(_ node: Node, selector: LinkSelector) -> [Link]
+    func neighbours(_ node: Node, selector: EdgeSelector) -> [Edge]
 
 }
 
@@ -92,8 +92,8 @@ extension GraphProtocol {
         return nodes.contains { $0 === node }
     }
 
-    public func contains(link: Link) -> Bool {
-        return links.contains { $0 === link }
+    public func contains(edge: Edge) -> Bool {
+        return edges.contains { $0 === edge }
     }
     
     /// Get a node by ID.
@@ -104,57 +104,57 @@ extension GraphProtocol {
         return nodes.first { $0.id == id }
     }
 
-    /// Get a link by ID.
+    /// Get an edge by ID.
     ///
     /// If id is `nil` then returns nil.
     ///
-    public func link(_ id: Object.ID) -> Link? {
-        return links.first { $0.id == id }
+    public func edge(_ id: Object.ID) -> Edge? {
+        return edges.first { $0.id == id }
     }
 
-    public func outgoing(_ origin: Node) -> [Link] {
-        let result: [Link]
+    public func outgoing(_ origin: Node) -> [Edge] {
+        let result: [Edge]
         
-        result = self.links.filter {
+        result = self.edges.filter {
             $0.origin === origin
         }
 
         return result
     }
-    public func incoming(_ target: Node) -> [Link] {
-        let result: [Link]
+    public func incoming(_ target: Node) -> [Edge] {
+        let result: [Edge]
         
-        result = self.links.filter {
+        result = self.edges.filter {
             $0.target === target
         }
 
         return result
     }
-    public func neighbours(_ node: Node) -> [Link] {
-        let result: [Link]
+    public func neighbours(_ node: Node) -> [Edge] {
+        let result: [Edge]
         
-        result = self.links.filter {
+        result = self.edges.filter {
             $0.target === node || $0.origin === node
         }
 
         return result
     }
-    public func neighbours(_ node: Node, selector: LinkSelector) -> [Link] {
+    public func neighbours(_ node: Node, selector: EdgeSelector) -> [Edge] {
         // TODO: Find a better name
-        let links: [Link]
+        let edges: [Edge]
         switch selector.direction {
-        case .incoming: links = self.incoming(node)
-        case .outgoing: links = self.outgoing(node)
+        case .incoming: edges = self.incoming(node)
+        case .outgoing: edges = self.outgoing(node)
         }
         
-        return links.filter { $0.contains(label: selector.label) }
+        return edges.filter { $0.contains(label: selector.label) }
     }
 
 }
 
 public protocol MutableGraphProtocol: GraphProtocol {
     func add(_ node: Node)
-    func remove(_ node: Node) -> [Link]
-    func connect(from origin: Node, to target: Node, labels: LabelSet, id: OID?) -> Link
-    func disconnect(link: Link)
+    func remove(_ node: Node) -> [Edge]
+    func connect(from origin: Node, to target: Node, labels: LabelSet, id: OID?) -> Edge
+    func disconnect(edge: Edge)
 }

@@ -36,48 +36,48 @@ final class ChangesTests: XCTestCase {
         XCTAssertEqual(revert[0], .addNode(node))
     }
 
-    func testRemoveNodeWithLinksChange() throws {
+    func testRemoveNodeWithEdgesChange() throws {
         let graph = Graph()
         let node = Node()
         let change: GraphChange = .removeNode(node)
         
         graph.add(node)
-        let link = graph.connect(from: node, to: node)
+        let edge = graph.connect(from: node, to: node)
 
         let revert = graph.applyChange(change)
         
         XCTAssertTrue(graph.nodes.isEmpty)
-        XCTAssertTrue(graph.links.isEmpty)
-        XCTAssertEqual(revert, [.addNode(node), .addLink(link)])
+        XCTAssertTrue(graph.edges.isEmpty)
+        XCTAssertEqual(revert, [.addNode(node), .addEdge(edge)])
     }
 
-    func testAddLinkChange() throws {
+    func testAddEdgeChange() throws {
         let graph = Graph()
         let node = Node()
         graph.add(node)
-        let link = Link(origin: node, target: node)
-        let change: GraphChange = .addLink(link)
+        let edge = Edge(origin: node, target: node)
+        let change: GraphChange = .addEdge(edge)
         
         let revert = graph.applyChange(change)
         
         XCTAssertEqual(graph.nodes.count, 1)
-        XCTAssertEqual(graph.links.count, 1)
-        XCTAssertEqual(revert, [.removeLink(link)])
+        XCTAssertEqual(graph.edges.count, 1)
+        XCTAssertEqual(revert, [.removeEdge(edge)])
     }
 
-    func testRemoveLinkChange() throws {
+    func testRemoveEdgeChange() throws {
         let graph = Graph()
         let node = Node()
         graph.add(node)
-        let link = Link(origin: node, target: node)
-        graph.add(link)
+        let edge = Edge(origin: node, target: node)
+        graph.add(edge)
         
-        let change: GraphChange = .removeLink(link)
+        let change: GraphChange = .removeEdge(edge)
         
         let revert = graph.applyChange(change)
         
         XCTAssertEqual(graph.nodes.count, 1)
-        XCTAssertEqual(graph.links.count, 0)
-        XCTAssertEqual(revert, [.addLink(link)])
+        XCTAssertEqual(graph.edges.count, 0)
+        XCTAssertEqual(revert, [.addEdge(edge)])
     }
 }

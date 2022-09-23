@@ -5,20 +5,20 @@
 //  Created by Stefan Urbanek on 2021/10/20.
 //
 
-/// Link represents a graph edge - conection between two nodes.
+/// Edge represents a connection between two nodes.
 ///
-/// The links in the graph have an origin node and a target node associated
-/// with it. The links are oriented for convenience and for most likely use
+/// The edges in the graph have an origin node and a target node associated
+/// with it. The edges are oriented for convenience and for most likely use
 /// cases. Despite most of the functionality might be using the orientation,
-/// it does not prevent one to treat the links as non-oriented.
+/// it does not prevent one to treat the edges as non-oriented.
 ///
-open class Link: Object {
+open class Edge: Object {
     
     
-    /// Origin node of the link - a node from which the link points from.
+    /// Origin node of the edge - a node from which the edge points from.
     ///
     public let origin: Node
-    /// Target node of the link - a node to which the link points to.
+    /// Target node of the edge - a node to which the edge points to.
     ///
     public let target: Node
     
@@ -30,10 +30,10 @@ open class Link: Object {
     
     
     public override var description: String {
-        return "Link(id: \(idDebugString), \(origin.idDebugString) -> \(target.idDebugString), labels: \(labels.sorted()))"
+        return "Edge(id: \(idDebugString), \(origin.idDebugString) -> \(target.idDebugString), labels: \(labels.sorted()))"
     }
     
-    /// Create a copy of the link with optionally setting a new origin and/or
+    /// Create a copy of the edge with optionally setting a new origin and/or
     /// target.
     ///
     /// The returned copy is not associated with any graph.
@@ -41,16 +41,16 @@ open class Link: Object {
     /// Subclasses should implement this method.
     ///
     open func copy(origin: Node? = nil, target: Node? = nil) -> Self {
-        let link = Self(origin: origin ?? self.origin,
+        let edge = Self(origin: origin ?? self.origin,
                         target: target ?? self.target,
                         labels: self.labels,
                         id: self.id)
-        return link
+        return edge
     }
 }
-extension Link: Hashable {
+extension Edge: Hashable {
     // FIXME: Is this 100% OK?
-    public static func == (lhs: Link, rhs: Link) -> Bool {
+    public static func == (lhs: Edge, rhs: Edge) -> Bool {
         lhs.id == rhs.id
         && lhs.labels == rhs.labels
         && lhs.origin == rhs.origin

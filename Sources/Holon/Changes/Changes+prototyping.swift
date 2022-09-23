@@ -7,7 +7,7 @@
 
 /**
  
- Node/Link states:
+ Node/Edge states:
  
  - state(graph,id)
  - new(nil, nil): unassigned to a graph, being initialised

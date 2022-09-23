@@ -10,14 +10,14 @@ extension Node {
     /// Flag whether the node is a holon.
     public var isHolon: Bool { contains(label: HolonLabel.Holon) }
     
-    /// Link between the node and holon that owns the node.
+    /// Edge between the node and holon that owns the node.
     ///
-    public var holonLink: Link? {
+    public var holonEdge: Edge? {
         if graph == nil {
             return nil
         }
         else {
-            return outgoing.first { $0.isHolonLink }
+            return outgoing.first { $0.isHolonEdge }
         }
     }
     
@@ -28,7 +28,7 @@ extension Node {
             return nil
         }
         else {
-            return holonLink?.target
+            return holonEdge?.target
         }
     }
 }
@@ -48,7 +48,7 @@ extension Node {
 ///   removed as well, including child holons and their nodes
 ///
 extension Node: HolonProtocol, MutableGraphProtocol {
-    public static let ParentHolonSelector = LinkSelector(HolonLabel.HolonLink,
+    public static let ParentHolonSelector = EdgeSelector(HolonLabel.HolonEdge,
                                                          direction: .outgoing)
 
     /// List of nodes that belong to the holon directly. The list excludes all
@@ -56,14 +56,14 @@ extension Node: HolonProtocol, MutableGraphProtocol {
     ///
     public var nodes: [Node] { graph!.nodes.filter { $0.holon === self } }
 
-    /// Get all links that belong to the holon.
+    /// Get all edges that belong to the holon.
     ///
-    /// Links that belong to the holon are those links that are between the
-    /// direct children nodes of the holon. Links that are between nodes
+    /// Edges that belong to the holon are those edges that are between the
+    /// direct children nodes of the holon. Edges that are between nodes
     /// of the holon and a child or a parent holon are not included.
     ///
-    public var links: [Link] {
-        graph!.links.filter {
+    public var edges: [Edge] {
+        graph!.edges.filter {
             $0.graph === self.graph
             && $0.origin.holon === self
             && $0.target.holon === self
@@ -75,7 +75,7 @@ extension Node: HolonProtocol, MutableGraphProtocol {
     public var childHolons: [Node] {
         // FIXME: This is wrong, remove
         // TODO: Rename to child holons
-        incoming.filter { $0.isHolonLink }
+        incoming.filter { $0.isHolonEdge }
             .map { $0.origin }
     }
     
@@ -118,7 +118,7 @@ extension Node: HolonProtocol, MutableGraphProtocol {
     ///
     /// - Precondition: Node must belong to the holon.
     ///
-    public func remove(_ node: Node) -> [Link] {
+    public func remove(_ node: Node) -> [Edge] {
         precondition(graph != nil, "Trying to remove a node from an unassociated holon")
         precondition(node.holon === self, "Trying to remove a node of another holon")
         return graph!.remove(node)
@@ -132,21 +132,21 @@ extension Node: HolonProtocol, MutableGraphProtocol {
     /// - Precondition: Both origin and target holon must be the same as the
     ///   receiver holon.
     ///
-    public func connect(from origin: Node, to target: Node, labels: LabelSet, id: OID?) -> Link {
+    public func connect(from origin: Node, to target: Node, labels: LabelSet, id: OID?) -> Edge {
         precondition(origin.holon === self, "Trying to connect a node (as origin) that belongs to another holon")
         precondition(target.holon === self, "Trying to connect a node (as target) that belongs to another holon")
         return graph!.connect(from: origin, to: target, labels: labels, id: id)
     }
     
-    /// Disconnects a link.
+    /// Disconnects an edge.
     ///
-    /// See: ``Graph/disconnect(link:)``
+    /// See: ``Graph/disconnect(edge:)``
     ///
     /// - Precondition: At least one of origin or a target must belong to the holon.
     ///
-    public func disconnect(link: Link) {
-        precondition(link.origin.holon === self || link.target.holon === self,
-                     "Trying to disconnect a link that does not belong to the holon, neither crosses its boundary")
-        graph!.disconnect(link: link)
+    public func disconnect(edge: Edge) {
+        precondition(edge.origin.holon === self || edge.target.holon === self,
+                     "Trying to disconnect an edge that does not belong to the holon, neither crosses its boundary")
+        graph!.disconnect(edge: edge)
     }
 }

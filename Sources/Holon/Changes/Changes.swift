@@ -27,20 +27,20 @@ public enum GraphChange: Equatable {
     ///
     case removeNode(Node)
 
-    /// Denotes a change to a graph when a link was created.
+    /// Denotes a change to a graph when an edge was created.
     ///
-    case addLink(Link)
+    case addEdge(Edge)
 
-    /// Denotes a change to a graph when a link was removed.
+    /// Denotes a change to a graph when an edge was removed.
     ///
-    case removeLink(Link)
+    case removeEdge(Edge)
     
-    /// Denotes a change to a graph object - either a node or a link - where
+    /// Denotes a change to a graph object - either a node or an edge - where
     /// an attribute was set to a new, non-nil value.
     ///
 //    case setAttribute(Object, AttributeKey, Value)
 
-    /// Denotes a change to a graph object - either a node or a link - where
+    /// Denotes a change to a graph object - either a node or an edge - where
     /// an attribute was removed or set to a `nil` value.
     ///
 //    case unsetAttribute(Object, AttributeKey)
@@ -48,15 +48,15 @@ public enum GraphChange: Equatable {
     /// Returns `true` if the change is related to given object. For node
     /// removal, node addition and attribute changes the object is related
     /// is the only objects of the change. For connection and disconnection
-    /// changes the object is related if the object is the link, origin or
-    /// a target of the link.
+    /// changes the object is related if the object is the edge, origin or
+    /// a target of the edge.
     ///
     public func isRelated(_ object: Object) -> Bool {
         switch self {
         case let .addNode(node): return node === object
         case let .removeNode(node): return node === object
-        case let .addLink(link): return link === object || link.origin === object || link.target === object
-        case let .removeLink(link): return link === object || link.origin === object || link.target === object
+        case let .addEdge(edge): return edge === object || edge.origin === object || edge.target === object
+        case let .removeEdge(edge): return edge === object || edge.origin === object || edge.target === object
 //        case let .setAttribute(another, _, _): return another === object
 //        case let .unsetAttribute(another, _): return another === object
         }
@@ -72,10 +72,10 @@ public enum GraphChange: Equatable {
             return lnode === rnode
         case let (.removeNode(lnode), .removeNode(rnode)):
             return lnode === rnode
-        case let (.addLink(llink), .addLink(rlink)):
-            return llink === rlink
-        case let (.removeLink(llink), .removeLink(rlink)):
-            return llink === rlink
+        case let (.addEdge(ledge), .addEdge(redge)):
+            return ledge === redge
+        case let (.removeEdge(ledge), .removeEdge(redge)):
+            return ledge === redge
 //        case let (.setAttribute(lobj, lattr, lvalue), .setAttribute(robj, rattr, rvalue)):
 //            return lobj == robj && lattr == rattr && lvalue == rvalue
 //        case let (.unsetAttribute(lobj, lattr), .unsetAttribute(robj, rattr)):

@@ -71,55 +71,55 @@ final class PredicateTests: XCTestCase {
     }
 }
 
-final class LinkPredicateTests: XCTestCase {
+final class EdgePredicateTests: XCTestCase {
     let graph = Graph()
 
-    func testLinkObjectPredicate() throws {
+    func testEdgeObjectPredicate() throws {
         let node1 = Node(labels: ["this"])
         let node2 = Node(labels: ["that"])
         graph.add(node1)
         graph.add(node2)
 
-        let link12 = graph.connect(from: node1, to: node2, labels: ["in"])
-        let link21 = graph.connect(from: node2, to: node1, labels: ["out"])
+        let edge12 = graph.connect(from: node1, to: node2, labels: ["in"])
+        let edge21 = graph.connect(from: node2, to: node1, labels: ["out"])
 
-        let p1 = LinkObjectPredicate(origin: LabelPredicate(all: "this"))
-        XCTAssertTrue(p1.match(link12))
-        XCTAssertFalse(p1.match(link21))
+        let p1 = EdgeObjectPredicate(origin: LabelPredicate(all: "this"))
+        XCTAssertTrue(p1.match(edge12))
+        XCTAssertFalse(p1.match(edge21))
 
-        let p2 = LinkObjectPredicate(target: LabelPredicate(all: "this"))
-        XCTAssertFalse(p2.match(link12))
-        XCTAssertTrue(p2.match(link21))
+        let p2 = EdgeObjectPredicate(target: LabelPredicate(all: "this"))
+        XCTAssertFalse(p2.match(edge12))
+        XCTAssertTrue(p2.match(edge21))
 
-        let p3 = LinkObjectPredicate(link: LabelPredicate(all: "in"))
-        XCTAssertTrue(p3.match(link12))
-        XCTAssertFalse(p3.match(link21))
+        let p3 = EdgeObjectPredicate(edge: LabelPredicate(all: "in"))
+        XCTAssertTrue(p3.match(edge12))
+        XCTAssertFalse(p3.match(edge21))
 
-        let p4 = LinkObjectPredicate(link: LabelPredicate(all: "out"))
-        XCTAssertFalse(p4.match(link12))
-        XCTAssertTrue(p4.match(link21))
+        let p4 = EdgeObjectPredicate(edge: LabelPredicate(all: "out"))
+        XCTAssertFalse(p4.match(edge12))
+        XCTAssertTrue(p4.match(edge21))
 
-        let link12empty = graph.connect(from: node1, to: node2, labels: [])
-        let link21empty = graph.connect(from: node2, to: node1, labels: [])
+        let edge12empty = graph.connect(from: node1, to: node2, labels: [])
+        let edge21empty = graph.connect(from: node2, to: node1, labels: [])
 
-        let p5 = LinkObjectPredicate(
+        let p5 = EdgeObjectPredicate(
             origin: LabelPredicate(all: "this"),
             target: LabelPredicate(all: "that"))
 
-        XCTAssertTrue(p5.match(link12))
-        XCTAssertTrue(p5.match(link12empty))
-        XCTAssertFalse(p5.match(link21))
-        XCTAssertFalse(p5.match(link21empty))
+        XCTAssertTrue(p5.match(edge12))
+        XCTAssertTrue(p5.match(edge12empty))
+        XCTAssertFalse(p5.match(edge21))
+        XCTAssertFalse(p5.match(edge21empty))
 
-        let p6 = LinkObjectPredicate(
+        let p6 = EdgeObjectPredicate(
             origin: LabelPredicate(all: "this"),
             target: LabelPredicate(all: "that"),
-            link: LabelPredicate(all: "in"))
+            edge: LabelPredicate(all: "in"))
 
-        XCTAssertTrue(p6.match(link12))
-        XCTAssertFalse(p6.match(link12empty))
-        XCTAssertFalse(p6.match(link21))
-        XCTAssertFalse(p6.match(link21empty))
+        XCTAssertTrue(p6.match(edge12))
+        XCTAssertFalse(p6.match(edge12empty))
+        XCTAssertFalse(p6.match(edge21))
+        XCTAssertFalse(p6.match(edge21empty))
 
     }
 }

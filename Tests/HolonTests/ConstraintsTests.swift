@@ -18,13 +18,13 @@ final class ConstraintsTests: XCTestCase {
         let constraint: NodeConstraint = NodeConstraint(
             name: "single_outflow",
             match: LabelPredicate(all: "source"),
-            requirement: UniqueNeighbourRequirement(LinkSelector("flow", direction: .outgoing), required: false)
+            requirement: UniqueNeighbourRequirement(EdgeSelector("flow", direction: .outgoing), required: false)
         )
 
         let constraintRequired: NodeConstraint = NodeConstraint(
             name: "single_outflow",
             match: LabelPredicate(all: "source"),
-            requirement: UniqueNeighbourRequirement(LinkSelector("flow", direction: .outgoing), required: true)
+            requirement: UniqueNeighbourRequirement(EdgeSelector("flow", direction: .outgoing), required: true)
         )
 
         graph.add(source)
@@ -36,7 +36,7 @@ final class ConstraintsTests: XCTestCase {
 
         let violations = constraint.check(graph)
         /// Non-required constraint is satisfied, the required constraint is not
-        XCTAssertTrue(violations.links.isEmpty)
+        XCTAssertTrue(violations.edges.isEmpty)
         XCTAssertTrue(violations.nodes.isEmpty)
         XCTAssertEqual(constraintRequired.check(graph).nodes, [source])
 
@@ -44,11 +44,11 @@ final class ConstraintsTests: XCTestCase {
         /// Both constraints are satisfied
         flow1.set(label: "flow")
         let violations2 = constraint.check(graph)
-        XCTAssertTrue(violations2.links.isEmpty)
+        XCTAssertTrue(violations2.edges.isEmpty)
         XCTAssertTrue(violations2.nodes.isEmpty)
         let violations3 = constraintRequired.check(graph)
         XCTAssertTrue(violations3.nodes.isEmpty)
-        XCTAssertTrue(violations3.links.isEmpty)
+        XCTAssertTrue(violations3.edges.isEmpty)
 
         /// Both constraints are not satisfied.
         flow2.set(label: "flow")
@@ -57,7 +57,7 @@ final class ConstraintsTests: XCTestCase {
         XCTAssertEqual(constraintRequired.check(graph).nodes, [source])
     }
     
-    func testLinkConstraint() throws {
+    func testEdgeConstraint() throws {
         let graph = Graph()
         let node1 = Node(labels: ["this"])
         let node2 = Node(labels: ["that"])
@@ -65,51 +65,51 @@ final class ConstraintsTests: XCTestCase {
         graph.add(node2)
 
         graph.connect(from: node1, to: node2, labels: ["good"])
-        let linkBad = graph.connect(from: node1, to: node2, labels: ["bad"])
+        let edgeBad = graph.connect(from: node1, to: node2, labels: ["bad"])
 
-        let c1 = LinkConstraint(
+        let c1 = EdgeConstraint(
             name: "test_constraint",
-            match: LinkObjectPredicate(
+            match: EdgeObjectPredicate(
                 origin: LabelPredicate(all: "this"),
                 target: LabelPredicate(all: "that"),
-                link: LabelPredicate(all: "bad")
+                edge: LabelPredicate(all: "bad")
             ),
             requirement: RejectAll()
         )
         
         let violations1 = c1.check(graph)
         
-        XCTAssertEqual(violations1.links, [linkBad])
+        XCTAssertEqual(violations1.edges, [edgeBad])
         
-        let c2 = LinkConstraint(
+        let c2 = EdgeConstraint(
             name: "test_constraint",
-            match: LinkObjectPredicate(
+            match: EdgeObjectPredicate(
                 origin: LabelPredicate(all: "this"),
                 target: LabelPredicate(all: "that"),
-                link: LabelPredicate(all: "bad")
+                edge: LabelPredicate(all: "bad")
             ),
             requirement: AcceptAll()
         )
         
         let violations2 = c2.check(graph)
         
-        XCTAssertEqual(violations2.links, [])
+        XCTAssertEqual(violations2.edges, [])
         XCTAssertEqual(violations2.nodes, [])
     }
 }
 
-final class LinkRequirementsTests: XCTestCase {
+final class EdgeRequirementsTests: XCTestCase {
     func testRejectAll() throws {
         let graph = Graph()
         let node = Node()
         graph.add(node)
-        let link1 = graph.connect(from: node, to: node, labels: ["one"])
-        let link2 = graph.connect(from: node, to: node, labels: ["two"])
+        let edge1 = graph.connect(from: node, to: node, labels: ["one"])
+        let edge2 = graph.connect(from: node, to: node, labels: ["two"])
         
         let requirement = RejectAll()
-        let violations = requirement.check([link1, link2])
+        let violations = requirement.check([edge1, edge2])
         XCTAssertEqual(violations.count, 2)
-        XCTAssertEqual(violations, [link1, link2])
+        XCTAssertEqual(violations, [edge1, edge2])
         
     }
 }
@@ -153,7 +153,7 @@ final class TestUniqueProperty: XCTestCase {
     }
 }
 
-final class TestLinkLabelsRequirement: XCTestCase {
+final class TestEdgeLabelsRequirement: XCTestCase {
     let graph = Graph()
     
     func testOrigin() throws {
@@ -161,19 +161,19 @@ final class TestLinkLabelsRequirement: XCTestCase {
         let target = Node(labels: ["target"])
         graph.add(origin)
         graph.add(target)
-        let validLink = graph.connect(from: origin, to: target)
-        let invalidLink = graph.connect(from: target, to: origin)
+        let validEdge = graph.connect(from: origin, to: target)
+        let invalidEdge = graph.connect(from: target, to: origin)
 
-        let requirement = LinkLabelsRequirement(
+        let requirement = EdgeLabelsRequirement(
             origin: LabelPredicate(all: "origin"),
             target: nil,
-            link: nil
+            edge: nil
         )
         
-        let invalid = requirement.check(graph.links)
+        let invalid = requirement.check(graph.edges)
         
         XCTAssertEqual(invalid.count, 1)
-        XCTAssertTrue(invalid.contains(invalidLink))
-        XCTAssertFalse(invalid.contains(validLink))
+        XCTAssertTrue(invalid.contains(invalidEdge))
+        XCTAssertFalse(invalid.contains(validEdge))
     }
 }

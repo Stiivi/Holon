@@ -11,7 +11,7 @@
 public typealias OID = Object.ID
 
 /// An abstract class representing all objects in a graph. Concrete
-/// kinds of graph objects are ``Node`` and ``Link``.
+/// kinds of graph objects are ``Node`` and ``Edge``.
 ///
 /// Each graph objects has a unique identity within the graph.
 ///
@@ -111,7 +111,7 @@ open class Object: Identifiable, CustomStringConvertible {
 }
 
 
-/// A set of nodes and links.
+/// A set of nodes and edges.
 ///
 //public struct GraphObjectSet: Collection {
 //    // TODO: This needs attention
@@ -119,13 +119,13 @@ open class Object: Identifiable, CustomStringConvertible {
 //    public typealias Element = Object
 //    public let objects: [Object]
 //    
-//    public init(nodes: [Node] = [], links: [Link] = []) {
+//    public init(nodes: [Node] = [], edges: [Edge] = []) {
 //        self.nodes = nodes
-//        self.links = links
+//        self.edges = edges
 //    }
 //    
-//    public var startIndex: Index { return links.startIndex }
-//    public var endIndex: Index { return links.endIndex }
+//    public var startIndex: Index { return edges.startIndex }
+//    public var endIndex: Index { return edges.endIndex }
 //
 //    
 //}

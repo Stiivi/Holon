@@ -1,5 +1,5 @@
 //
-//  LinkConstraints.swift
+//  EdgeConstraints.swift
 //  
 //
 //  Created by Stefan Urbanek on 16/06/2022.
@@ -7,9 +7,9 @@
 
 // TODO: Merge with NodeConstraint
 
-/// An object representing constraint that checks links.
+/// An object representing constraint that checks edges.
 ///
-public class LinkConstraint: Constraint {
+public class EdgeConstraint: Constraint {
     /// Name of the constraint.
     ///
     /// See ``Constraint/name`` for more information.
@@ -19,28 +19,28 @@ public class LinkConstraint: Constraint {
     ///
     public let description: String?
 
-    /// A predicate that matches all links to be considered for this constraint.
+    /// A predicate that matches all edges to be considered for this constraint.
     ///
-    /// See ``LinkPredicate`` for more information.
+    /// See ``EdgePredicate`` for more information.
     ///
-    public let match: LinkPredicate
+    public let match: EdgePredicate
     
-    /// A requirement that needs to be satisfied for the matched links.
+    /// A requirement that needs to be satisfied for the matched edges.
     ///
-    public let requirement: LinkConstraintRequirement
+    public let requirement: EdgeConstraintRequirement
     
-    /// Creates a link constraint.
+    /// Creates an edge constraint.
     ///
     /// - Properties:
     ///
     ///     - name: Constraint name
     ///     - description: Constraint description
-    ///     - match: a link predicate that matches links to be considered for
+    ///     - match: an edge predicate that matches edges to be considered for
     ///       this constraint
     ///     - requirement: a requirement that needs to be satisfied by the
-    ///       matched links.
+    ///       matched edges.
     ///
-    public init(name: String, description: String? = nil, match: LinkPredicate, requirement: LinkConstraintRequirement) {
+    public init(name: String, description: String? = nil, match: EdgePredicate, requirement: EdgeConstraintRequirement) {
         self.name = name
         self.description = description
         self.match = match
@@ -50,77 +50,77 @@ public class LinkConstraint: Constraint {
     /// Check the graph for the constraint and return a list of nodes that
     /// violate the constraint
     ///
-    public func check(_ graph: Graph) -> (nodes: [Node], links: [Link]) {
-        let matched = graph.links.filter { match.match($0) }
+    public func check(_ graph: Graph) -> (nodes: [Node], edges: [Edge]) {
+        let matched = graph.edges.filter { match.match($0) }
         let violating = requirement.check(matched)
-        return (nodes: [], links: violating)
+        return (nodes: [], edges: violating)
     }
 }
 
 /// Definition of a constraint satisfaction requirement.
 ///
-public protocol LinkConstraintRequirement {
+public protocol EdgeConstraintRequirement {
     /// Check whether the constraint requirement is satisfied within the group
-    /// of provided links.
+    /// of provided edges.
     ///
     /// - Returns: List of graph objects that cause constraint violation.
     ///
-    func check(_ links: [Link]) -> [Link]
+    func check(_ edges: [Edge]) -> [Edge]
 }
 
-/// Requirement that the link origin, link target and the link itself matches
+/// Requirement that the edge origin, edge target and the edge itself matches
 /// given labels.
 ///
-public class LinkLabelsRequirement: LinkConstraintRequirement {
+public class EdgeLabelsRequirement: EdgeConstraintRequirement {
     
     // TODO: Use CompoundPredicate
     // FIXME: I do not like this class
     
-    /// Labels to be matched on the link's origin, if provided.
+    /// Labels to be matched on the edge's origin, if provided.
     public let originLabels: LabelPredicate?
     
-    /// Labels to be matched on the link's target, if provided.
+    /// Labels to be matched on the edge's target, if provided.
     public let targetLabels: LabelPredicate?
     
-    /// Labels to be matched on the link itself, if provided.
-    public let linkLabels: LabelPredicate?
+    /// Labels to be matched on the edge itself, if provided.
+    public let edgeLabels: LabelPredicate?
 
-    /// Creates a constraint requirement for links that tests for labels on
-    /// link's origin, target and/or the link itself. At least one of the
+    /// Creates a constraint requirement for edges that tests for labels on
+    /// edge's origin, target and/or the edge itself. At least one of the
     /// parameters needs to be specified.
     ///
     /// - Parameters:
     ///
-    ///     - origin: Predicate that matches labels on the link's origin
-    ///     - target: Predicate that matches labels on the link's target
-    ///     - link: Predicate that matches labels on the link itself
+    ///     - origin: Predicate that matches labels on the edge's origin
+    ///     - target: Predicate that matches labels on the edge's target
+    ///     - edge: Predicate that matches labels on the edge itself
     ///
     public init(origin: LabelPredicate? = nil,
                 target: LabelPredicate? = nil,
-                link: LabelPredicate? = nil) {
-        guard !(origin == nil && target == nil && link == nil) else {
+                edge: LabelPredicate? = nil) {
+        guard !(origin == nil && target == nil && edge == nil) else {
             preconditionFailure("At least one of the parameters must be set: origin or target")
         }
         
         self.originLabels = origin
         self.targetLabels = target
-        self.linkLabels = link
+        self.edgeLabels = edge
     }
     
-    public func check(_ links: [Link]) -> [Link] {
-        var violations: [Link] = []
+    public func check(_ edges: [Edge]) -> [Edge] {
+        var violations: [Edge] = []
         
-        for link in links {
-            if let predicate = originLabels, !predicate.match(link.origin) {
-                violations.append(link)
+        for edge in edges {
+            if let predicate = originLabels, !predicate.match(edge.origin) {
+                violations.append(edge)
                 continue
             }
-            if let predicate = targetLabels, !predicate.match(link.target) {
-                violations.append(link)
+            if let predicate = targetLabels, !predicate.match(edge.target) {
+                violations.append(edge)
                 continue
             }
-            if let predicate = linkLabels, !predicate.match(link) {
-                violations.append(link)
+            if let predicate = edgeLabels, !predicate.match(edge) {
+                violations.append(edge)
                 continue
             }
         }

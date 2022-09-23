@@ -16,6 +16,6 @@ file format [DOT](https://graphviz.gitlab.io/doc/info/lang.html).
 - ``DotExporter``
 - ``DotFormatter``
 - ``DotStyle``
-- ``DotLinkStyle``
+- ``DotEdgeStyle``
 - ``DotNodeStyle``
 - ``DotGraphType``

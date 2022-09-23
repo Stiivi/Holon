@@ -5,28 +5,28 @@
 ## Overview
 
 The library has a built-in functionality to create indirections through proxies.
-Some nodes can be marked as proxies and links to those proxies can be marked
-as indirect. Using a graph rewriter the indirect links can be converted
-to direct links.
+Some nodes can be marked as proxies and edges to those proxies can be marked
+as indirect. Using a graph rewriter the indirect edges can be converted
+to direct edges.
 
 ### Proxies
 
 Proxies are nodes that have system label ``IndirectionLabel/Proxy``. Any node can be
 a proxy node. Each proxy node represent another node - its real subject.
-Therefore each proxy node requires a link between the proxy node and its
+Therefore each proxy node requires an edge between the proxy node and its
 subject.
 
-The link between proxy node and its subject has a system label
-``IndirectionLabel/Subject``, the proxy is the origin of the link and subject is the
-target of the link.
+The edge between proxy node and its subject has a system label
+``IndirectionLabel/Subject``, the proxy is the origin of the edge and subject is the
+target of the edge.
 
-### Links
+### Edges
 
-Links that are to be interpreted as indirect have endpoints pointing to proxies
+Edges that are to be interpreted as indirect have endpoints pointing to proxies
 and have the endpoints marked as indirect through appropriate label:
-``IndirectionLabel/IndirectOrigin`` is used to mark that the link's origin is indirect,
-``IndirectionLabel/IndirectTarget`` is used to mark that the link's target is indirect.
-If an endpoint of a link is a proxy, but the endpoint is not marked as indirect,
+``IndirectionLabel/IndirectOrigin`` is used to mark that the edge's origin is indirect,
+``IndirectionLabel/IndirectTarget`` is used to mark that the edge's target is indirect.
+If an endpoint of an edge is a proxy, but the endpoint is not marked as indirect,
 it means that the endpoint is the proxy object itself.
 
 The following example depicts an indirection: the `Device A` is logically
@@ -50,8 +50,8 @@ After graph rewriting we will get the following graph:
 ```
 
 
-The following example depicts direct links from the `Box` node to `Port` nodes.
-This graph will not be interpreted as having indirect links.
+The following example depicts direct edges from the `Box` node to `Port` nodes.
+This graph will not be interpreted as having indirect edges.
 
 ```
                           (subject)

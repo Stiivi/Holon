@@ -5,7 +5,7 @@
 //  Created by Stefan Urbanek on 01/09/2022.
 //
 
-/// Type of a node or a link label.
+/// Type of a node or an edge label.
 ///
 /// ## System Labels
 ///

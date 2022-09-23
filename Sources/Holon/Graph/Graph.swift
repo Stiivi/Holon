@@ -16,7 +16,7 @@
 // -------------------------------------------------------------------------
 
 /// Holon is a mutable structure representing a directed labelled multi-graph.
-/// The graph is composed of nodes (vertices) and links (edges between
+/// The graph is composed of nodes (vertices) and edges (connections between
 /// vertices).
 ///
 /// The main functionality of the graph structure is to mutate the graph:
@@ -39,18 +39,18 @@
 /// graph.connect(from: parent, to: leftChild, labels: ["right"])
 /// ```
 ///
-/// ## Lifetime and Ownership of Nodes and Links
+/// ## Lifetime and Ownership of Nodes and Edges
 ///
 /// When a node is created, it belongs to the creator until the node
 /// is added to the graph. When a node is added to the graph using
 /// ``Graph/add(_:)-3j4hi`` then the graph becomes owner of the node until the
 /// node is removed from the graph with ``Graph/remove(_:)``.
 ///
-/// Link, when created externally, is owned by the creator. When a link is added
-/// to the graph using ``Graph/add(_:)-af7w`` or a new link is created by
+/// Edge, when created externally, is owned by the creator. When an edge is added
+/// to the graph using ``Graph/add(_:)-af7w`` or a new edge is created by
 /// ``Graph/connect(from:to:labels:id:)`` then graph becomes owner of the
-/// link until the link is removed from the graph either with
-/// ``Graph/disconnect(link:)`` or as a by-product of ``Graph/remove(_:)``.
+/// edge until the edge is removed from the graph either with
+/// ``Graph/disconnect(edge:)`` or as a by-product of ``Graph/remove(_:)``.
 ///
 public class Graph: MutableGraphProtocol {
     // Potential generic parameters:
@@ -62,12 +62,12 @@ public class Graph: MutableGraphProtocol {
     // MARK: - Instance variables
     
     var _nodes: [OID:Node] = [:]
-    var _links: [OID:Link] = [:]
+    var _edges: [OID:Edge] = [:]
     /// List of nodes in the graph.
     public var nodes: [Node] { Array(_nodes.values) }
     
-    /// List of links in the graph.
-    public var links: [Link] { Array(_links.values) }
+    /// List of edges in the graph.
+    public var edges: [Edge] { Array(_edges.values) }
     
     /// Publisher of graph changes before they are applied. The associated
     /// graph object and the graph are in their original state.
@@ -87,13 +87,13 @@ public class Graph: MutableGraphProtocol {
     ///
     ///     - nodes: List of nodes of the new graph. The nodes must not be
     ///       associated with any other graph
-    ///     - nodes: List of links of the new graph. The links must not be
+    ///     - nodes: List of edges of the new graph. The edges must not be
     ///       associated with any other graph and must be valid.
     ///
-    /// - Precondition: Provided nodes and links must not belong to any graph.
-    /// - Precondition: Endpoints of the links must be in the list of provided nodes
+    /// - Precondition: Provided nodes and edges must not belong to any graph.
+    /// - Precondition: Endpoints of the edges must be in the list of provided nodes
     ///
-    public init(nodes: [Node] = [], links: [Link] = []) {
+    public init(nodes: [Node] = [], edges: [Edge] = []) {
         guard nodes.allSatisfy({ $0.graph == nil }) else {
             preconditionFailure("Nodes must not be associated with any graph")
         }
@@ -102,17 +102,17 @@ public class Graph: MutableGraphProtocol {
             _nodes[node.id] = node
         }
 
-        guard links.allSatisfy({ $0.graph == nil }) else {
-            preconditionFailure("Links must not be associated with any graph")
+        guard edges.allSatisfy({ $0.graph == nil }) else {
+            preconditionFailure("Edges must not be associated with any graph")
         }
 
-        guard links.allSatisfy({ nodes.contains($0.origin) && nodes.contains($0.target) }) else {
-            preconditionFailure("Links endpoints must be in the provided list of nodes")
+        guard edges.allSatisfy({ nodes.contains($0.origin) && nodes.contains($0.target) }) else {
+            preconditionFailure("Edge endpoints must be in the provided list of nodes")
         }
 
-        for link in links {
-            assert(_links[link.id] == nil)
-            _links[link.id] = link
+        for edge in edges {
+            assert(_edges[edge.id] == nil)
+            _edges[edge.id] = edge
         }
     }
     
@@ -131,14 +131,14 @@ public class Graph: MutableGraphProtocol {
         return node.graph === self && _nodes[node.id] != nil
     }
     
-    /// Check whether the graph contains a link and whether the node is valid.
+    /// Check whether the graph contains an edge and whether the node is valid.
     ///
-    /// - Returns: `true` if the graph contains the link.
+    /// - Returns: `true` if the graph contains the edge.
     ///
-    /// - Note: Link comparison is based on its identity.
+    /// - Note: Edge comparison is based on its identity.
     ///
-    public func contains(link: Link) -> Bool {
-        return link.graph === self && _links[link.id] != nil
+    public func contains(edge: Edge) -> Bool {
+        return edge.graph === self && _edges[edge.id] != nil
     }
 
     /// Get a node by ID.
@@ -149,12 +149,12 @@ public class Graph: MutableGraphProtocol {
         return _nodes[id]
     }
 
-    /// Get a link by ID.
+    /// Get an edge by ID.
     ///
     /// If id is `nil` then returns nil.
     ///
-    public func link(_ id: Object.ID) -> Link? {
-        return _links[id]
+    public func edge(_ id: Object.ID) -> Edge? {
+        return _edges[id]
     }
 
 
@@ -192,14 +192,14 @@ public class Graph: MutableGraphProtocol {
         didChange(change)
     }
     
-    /// Removes node from the graph and removes all incoming and outgoing links
+    /// Removes node from the graph and removes all incoming and outgoing edges
     /// for that node.
     ///
-    /// - Returns: List of links that were disconnected and list of nodes that
+    /// - Returns: List of edges that were disconnected and list of nodes that
     ///            were removed in addition to the node requested. (The
     ///            requested node is not included in the returned list)
     ///
-    /// - Note: The caller becomes owner of the returned nodes and links.
+    /// - Note: The caller becomes owner of the returned nodes and edges.
     ///
     /// - Precondition: Node must belong to the graph.
     ///
@@ -208,19 +208,19 @@ public class Graph: MutableGraphProtocol {
     ///   remove holon node see ``removeHolon(_:)`` or ``dissolveHolon(_:)``.
     ///
     @discardableResult
-    public func remove(_ node: Node) -> [Link] {
+    public func remove(_ node: Node) -> [Edge] {
         precondition(node.graph === self, "Trying to remove a node that does not belong to the graph")
 
-        var disconnected: [Link] = []
+        var disconnected: [Edge] = []
         
         let change = GraphChange.removeNode(node)
         willChange(change)
 
         // First we remove all the connections
-        for link in links {
-            if link.origin === node || link.target === node {
-                disconnected.append(link)
-                rawDisconnect(link)
+        for edge in edges {
+            if edge.origin === node || edge.target === node {
+                disconnected.append(edge)
+                rawDisconnect(edge)
             }
         }
 
@@ -233,15 +233,15 @@ public class Graph: MutableGraphProtocol {
     
     
     ///
-    /// The link name does not have to be unique and there might be multiple
-    /// links with the same name between two nodes.
+    /// The edge name does not have to be unique and there might be multiple
+    /// edges with the same name between two nodes.
     ///
     /// - Parameters:
     ///
-    ///     - origin: The node from which the link originates.
-    ///     - target: The node to which the link points.
-    ///     - attributes: Attributes of the link.
-    ///     - id: Unique link identifier. Link with given identifier must not
+    ///     - origin: The node from which the edge originates.
+    ///     - target: The node to which the edge points.
+    ///     - attributes: Attributes of the edge.
+    ///     - id: Unique edge identifier. Edge with given identifier must not
     ///     exist. If not provided, new one is assigned.
     ///     - follow: flag whether ports are being followed
     ///
@@ -261,7 +261,7 @@ public class Graph: MutableGraphProtocol {
     /// - A port of a child holon to a port of a child holon
     ///
     ///
-    /// - Returns: Newly created link
+    /// - Returns: Newly created edge
     ///
     /// - Precondition: Origin and target must be from the same graph and
     /// the connection must follow the rules mentioned above. It is up
@@ -272,112 +272,112 @@ public class Graph: MutableGraphProtocol {
     public func connect(from origin: Node,
                         to target: Node,
                         labels: LabelSet=[],
-                        id: OID?=nil) -> Link {
+                        id: OID?=nil) -> Edge {
         precondition(origin.graph === self, "Connecting from an origin from a different graph")
         precondition(target.graph === self, "Connecting to a target from a different graph")
         
-        let link = Link(origin: origin, target: target, labels: labels, id: id)
+        let edge = Edge(origin: origin, target: target, labels: labels, id: id)
         
-        let change = GraphChange.addLink(link)
+        let change = GraphChange.addEdge(edge)
         willChange(change)
 
-        link.graph = self
-        _links[link.id] = link
+        edge.graph = self
+        _edges[edge.id] = edge
         didChange(change)
         
-        return link
+        return edge
     }
     
 
-    /// Adds a custom-created link to the graph.
+    /// Adds a custom-created edge to the graph.
     ///
-    /// This method can be also used to associate previously associated link
+    /// This method can be also used to associate previously associated edge
     /// with the graph. Typical use-case would be an undo command.
     /// 
-    /// - Note: A link object belongs to one graph only. It can not be shared
+    /// - Note: An edge object belongs to one graph only. It can not be shared
     /// once added to a graph.
     ///
     /// - Parameters:
     ///
-    ///     - link: Link to be added to the graph.
+    ///     - edge: Edge to be added to the graph.
     ///
-    /// - Precondition: Link must not be associated with any graph.
-    /// - Precondition: Graph must not have a link with the same ID.
+    /// - Precondition: Edge must not be associated with any graph.
+    /// - Precondition: Graph must not have an edge with the same ID.
     ///
-    public func add(_ link: Link) {
-        precondition(link.graph == nil,
-                     "Trying to associate already associated link: \(link)")
-        precondition(_links[link.id] == nil, "The graph already contains a link with id '\(link.id)'.")
-        precondition(contains(node: link.origin), "Origin of a link does not belong to the graph")
-        precondition(contains(node: link.target), "Target of a link does not belong to the graph")
+    public func add(_ edge: Edge) {
+        precondition(edge.graph == nil,
+                     "Trying to associate already associated edge: \(edge)")
+        precondition(_edges[edge.id] == nil, "The graph already contains an edge with id '\(edge.id)'.")
+        precondition(contains(node: edge.origin), "Origin of an edge does not belong to the graph")
+        precondition(contains(node: edge.target), "Target of an edge does not belong to the graph")
 
-        let change = GraphChange.addLink(link)
+        let change = GraphChange.addEdge(edge)
         willChange(change)
         
         // Register the object
-        link.graph = self
-        _links[link.id] = link
+        edge.graph = self
+        _edges[edge.id] = edge
         
         didChange(change)
     }
 
-    /// Removes a specific link from the graph. This method is shared for
-    /// consistency between remove(node:) and disconnect(link:).
+    /// Removes a specific edge from the graph. This method is shared for
+    /// consistency between remove(node:) and disconnect(edge:).
     ///
     /// - Parameters:
     ///
-    ///     - link: Link to be removed.
+    ///     - edge: Edge to be removed.
     ///
-    func rawDisconnect(_ link: Link) {
-        // NOTE: Here we know that the link's graph is us, we do not have to
+    func rawDisconnect(_ edge: Edge) {
+        // NOTE: Here we know that the edge's graph is us, we do not have to
         //       check it. Since IDs are unique, we can just use the ID to remove
         //       the node.
         //
-        _links[link.id] = nil
-        link.graph = nil
+        _edges[edge.id] = nil
+        edge.graph = nil
     }
     
     
-    /// Removes a specific link from the graph. Link must exist in the graph.
+    /// Removes a specific edge from the graph. Edge must exist in the graph.
     ///
     /// - Parameters:
     ///
-    ///     - link: Link to be removed.
+    ///     - edge: Edge to be removed.
     ///
-    public func disconnect(link: Link) {
-        precondition(link.graph === self,
-                     "Trying to disconnect an unassociated link or a link from a different graph")
+    public func disconnect(edge: Edge) {
+        precondition(edge.graph === self,
+                     "Trying to disconnect an unassociated edge or an edge from a different graph")
 
-        let change = GraphChange.removeLink(link)
+        let change = GraphChange.removeEdge(edge)
         willChange(change)
-        rawDisconnect(link)
+        rawDisconnect(edge)
         didChange(change)
     }
     
     // MARK: - Advanced Query
     
-    /// Get a list of outgoing links from a node.
+    /// Get a list of outgoing edges from a node.
     ///
     /// - Parameters:
-    ///     - origin: Node from which the links originate - node is origin
-    ///     node of the link.
+    ///     - origin: Node from which the edges originate - node is origin
+    ///     node of the edge.
     ///
-    /// - Returns: List of links.
+    /// - Returns: List of edges.
     ///
-    /// - Complexity: O(n). All links are traversed.
+    /// - Complexity: O(n). All edges are traversed.
     ///
-    /// - Note: If you want to get both outgoing and incoming links of a node
+    /// - Note: If you want to get both outgoing and incoming edges of a node
     ///   then use ``neighbours(_:)``. Using ``outgoing(_:)`` + ``incoming(_:)`` might
-    ///   result in duplicates for links that are loops to and from the same
+    ///   result in duplicates for edges that are loops to and from the same
     ///   node.
     ///
-    public func outgoing(_ origin: Node) -> [Link] {
+    public func outgoing(_ origin: Node) -> [Edge] {
         precondition(origin.graph === self,
-                     "Trying to get outgoing links from a node that is not associated with the graph.")
+                     "Trying to get outgoing edges from a node that is not associated with the graph.")
 
-        let result: [Link]
+        let result: [Edge]
         
-        result = self.links.filter {
+        result = self.edges.filter {
             $0.origin === origin
         }
 
@@ -385,28 +385,28 @@ public class Graph: MutableGraphProtocol {
     }
     
     
-    /// Get a list of links incoming to a node.
+    /// Get a list of edges incoming to a node.
     ///
     /// - Parameters:
-    ///     - target: Node to which the links are incoming – node is a target
-    ///       node of the link.
+    ///     - target: Node to which the edges are incoming – node is a target
+    ///       node of the edge.
     ///
-    /// - Returns: List of links.
+    /// - Returns: List of edges.
     ///
-    /// - Complexity: O(n). All links are traversed.
+    /// - Complexity: O(n). All edges are traversed.
     ///
-    /// - Note: If you want to get both outgoing and incoming links of a node
+    /// - Note: If you want to get both outgoing and incoming edges of a node
     ///   then use ``neighbours(_:)``. Using ``outgoing(_:)`` + ``incoming(_:)`` might
-    ///   result in duplicates for links that are loops to and from the same
+    ///   result in duplicates for edges that are loops to and from the same
     ///   node.
     ///
-    public func incoming(_ target: Node) -> [Link] {
+    public func incoming(_ target: Node) -> [Edge] {
         precondition(target.graph === self,
-                     "Trying to get incoming links from a node that is not associated with the graph.")
+                     "Trying to get incoming edges from a node that is not associated with the graph.")
 
-        let result: [Link]
+        let result: [Edge]
         
-        result = self.links.filter {
+        result = self.edges.filter {
             $0.target === target
         }
 
@@ -414,20 +414,20 @@ public class Graph: MutableGraphProtocol {
     }
     
     
-    /// Get a list of links that are related to the neighbours of the node. That
-    /// is, list of links where the node is either an origin or a target.
+    /// Get a list of edges that are related to the neighbours of the node. That
+    /// is, list of edges where the node is either an origin or a target.
     ///
-    /// - Returns: List of links.
+    /// - Returns: List of edges.
     ///
-    /// - Complexity: O(n). All links are traversed.
+    /// - Complexity: O(n). All edges are traversed.
     ///
-    public func neighbours(_ node: Node) -> [Link] {
+    public func neighbours(_ node: Node) -> [Edge] {
         precondition(node.graph === self,
-                     "Trying to get neighbor links from a node that is not associated with the graph.")
+                     "Trying to get neighbour edges from a node that is not associated with the graph.")
 
-        let result: [Link]
+        let result: [Edge]
         
-        result = self.links.filter {
+        result = self.edges.filter {
             $0.target === node || $0.origin === node
         }
 
@@ -435,37 +435,37 @@ public class Graph: MutableGraphProtocol {
     }
 
     
-    /// Determines whether the node has no outgoing links. That is, if there
-    /// are no links which have the node as origin.
+    /// Determines whether the node has no outgoing edges. That is, if there
+    /// are no edges which have the node as origin.
     ///
-    /// - Returns: `true` if there are no outgoing links from the node.
-    /// - Complexity: O(n). All links are traversed.
+    /// - Returns: `true` if there are no outgoing edges from the node.
+    /// - Complexity: O(n). All edges are traversed.
     ///
     public func isSink(_ node: Node) -> Bool {
         precondition(node.graph === self, "Node is not associated with this graph.")
-        return links.contains { $0.origin === node }
+        return edges.contains { $0.origin === node }
     }
     
-    /// Determines whether the node has no incoming links. That is, if there
-    /// are no links which have the node as target.
+    /// Determines whether the node has no incoming edges. That is, if there
+    /// are no edges which have the node as target.
     ///
-    /// - Returns: `true` if there are no incoming links to the node.
-    /// - Complexity: O(n). All links are traversed.
+    /// - Returns: `true` if there are no incoming edges to the node.
+    /// - Complexity: O(n). All edges are traversed.
     ///
     public func isSource(_ node: Node) -> Bool {
         precondition(node.graph === self, "Node is not associated with this graph.")
-        return links.contains { $0.target === node }
+        return edges.contains { $0.target === node }
     }
     
     /// Determines whether the `node` is an orphan, that is whether the node has
-    /// no incoming neither outgoing links.
+    /// no incoming neither outgoing edges.
     ///
-    /// - Returns: `true` if there are no links referring to the node.
-    /// - Complexity: O(n). All links are traversed.
+    /// - Returns: `true` if there are no edges referring to the node.
+    /// - Complexity: O(n). All edges are traversed.
     ///
     public func isOrphan(_ node: Node) -> Bool {
         precondition(node.graph === self, "Node is not associated with this graph.")
-        return links.contains { $0.origin === node || $0.target === node }
+        return edges.contains { $0.origin === node || $0.target === node }
     }
 
 
@@ -481,7 +481,7 @@ public class Graph: MutableGraphProtocol {
 
 
     public var description: String {
-        "Graph(nodes: \(nodes.count), links: \(links.count))"
+        "Graph(nodes: \(nodes.count), edges: \(edges.count))"
     }
     
     /// Create a copy of the graph
@@ -492,9 +492,9 @@ public class Graph: MutableGraphProtocol {
         }
         // We can use IDs because they are guaranteed to be unique within a
         // graph
-        for link in links {
-            let copy = link.copy(origin: graph.node(link.origin.id)!,
-                                 target: graph.node(link.target.id)!)
+        for edge in edges {
+            let copy = edge.copy(origin: graph.node(edge.origin.id)!,
+                                 target: graph.node(edge.target.id)!)
             graph.add(copy)
         }
         return graph
@@ -505,6 +505,6 @@ public class Graph: MutableGraphProtocol {
 extension Graph: Equatable {
     public static func ==(lhs: Graph, rhs: Graph) -> Bool {
         return lhs._nodes == rhs._nodes
-                    && lhs._links == rhs._links
+                    && lhs._edges == rhs._edges
     }
 }

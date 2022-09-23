@@ -59,30 +59,30 @@ open class Node: Object, Copying {
         }
     }
 
-    /// Links outgoing from the node, that is links where the node is the
+    /// Edges outgoing from the node, that is edges where the node is the
     /// origin.
     ///
     /// It is empty when the node is not associated with a graph.
     ///
-    /// - Note: If you want to get both outgoing and incoming links of a node
+    /// - Note: If you want to get both outgoing and incoming edges of a node
     ///   then use ``neighbours``. Using ``outgoing`` + ``incoming`` might
-    ///   result in duplicates for links that are loops to and from the same
+    ///   result in duplicates for edges that are loops to and from the same
     ///   node.
     ///
-    public var outgoing: [Link] {
+    public var outgoing: [Edge] {
         return graph!.outgoing(self)
     }
     
-    /// Links incoming to the node, that is links where the node is the target.
+    /// Edges incoming to the node, that is edges where the node is the target.
     ///
     /// It is empty when the node is not associated with a graph.
     ///
-    /// - Note: If you want to get both outgoing and incoming links of a node
+    /// - Note: If you want to get both outgoing and incoming edges of a node
     ///   then use ``neighbours``. Using ``outgoing`` + ``incoming`` might
-    ///   result in duplicates for links that are loops to and from the same
+    ///   result in duplicates for edges that are loops to and from the same
     ///   node.
     ///
-    public var incoming: [Link] {
+    public var incoming: [Edge] {
         return graph!.incoming(self)
     }
         

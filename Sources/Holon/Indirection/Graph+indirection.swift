@@ -24,23 +24,23 @@ extension Graph {
 
     /// Connects a proxy node to its subject.
     ///
-    /// Creates a properly annotated link between the proxy object and its
-    /// subject. Link created this way can be used to resolve indirect links
-    /// into direct links.
+    /// Creates a properly annotated edge between the proxy object and its
+    /// subject. Edge created this way can be used to resolve indirect edges
+    /// into direct edges.
     ///
     /// See also: ``Graph/connect(from:to:labels:id:)``
     ///
     /// - Precondition: Proxy must be a proxy node.
-    /// - Precondition: Proxy must not already contain a link to its subject.
+    /// - Precondition: Proxy must not already contain an edge to its subject.
     ///
     @discardableResult
     public func connect(proxy: Node,
                         representing target: Node,
                         labels: LabelSet = [],
-                        id: OID? = nil) -> Link {
+                        id: OID? = nil) -> Edge {
         precondition(proxy.isProxy)
         precondition(!outgoing(proxy).contains(where:{ $0.isSubject }),
-        "A link from a proxy to its subject already exists")
+        "An edge from a proxy to its subject already exists")
 
         // TODO: Check for cycles
         
@@ -51,12 +51,12 @@ extension Graph {
     }
 
     /// Connects two nodes with indirection. If either origin or a target are
-    /// ports, then the link at that endpoint will be marked as indirect.
+    /// ports, then the edge at that endpoint will be marked as indirect.
     ///
     public func connectIndirect(from origin: Node,
                                 to target: Node,
                                 labels: LabelSet=[],
-                                id: OID?=nil) -> Link {
+                                id: OID?=nil) -> Edge {
         // TODO: Check for cycles
         let additionalLabels: LabelSet
         if origin.isProxy && target.isProxy {

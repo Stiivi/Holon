@@ -15,7 +15,8 @@ public typealias AttributeKey = String
 //public typealias AttributeValue = Value
 // FIXME: Use Value from Simulation Foundation
 // For now we are using this only for generating user output
-public typealias AttributeValue = CustomStringConvertible
+//public typealias AttributeValue = CustomStringConvertible
+public typealias AttributeValue = ValueProtocol
 
 /// Type for a dictionary of graph object attributes.
 public typealias AttributeDictionary = [AttributeKey:AttributeValue]
@@ -45,6 +46,9 @@ extension KeyedValues {
 
         return AttributeDictionary(uniqueKeysWithValues: tuples)
     }
-
 }
+
+//public protocol MutableKeyedValues {
+//    var setAttribute(
+//}
 //

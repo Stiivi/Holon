@@ -28,61 +28,61 @@ public enum IndirectionConstraint {
                                                 required: true)
     )
     
-    /// Origin of the proxy-subject link must be a proxy and
-    /// the link must not have indirect origin.
+    /// Origin of the proxy-subject edge must be a proxy and
+    /// the edge must not have indirect origin.
     ///
-    public static let SubjectLinkOriginIsDirectProxy = LinkConstraint(
-        name: "subject_link_origin_is_direct_proxy",
+    public static let SubjectEdgeOriginIsDirectProxy = EdgeConstraint(
+        name: "subject_edge_origin_is_direct_proxy",
         description: """
-                     Origin of the proxy-subject link must be a proxy and
-                     the link must not have indirect origin.
+                     Origin of the proxy-subject edge must be a proxy and
+                     the edge must not have indirect origin.
                      """,
         match: LabelPredicate(all: IndirectionLabel.Subject),
-        requirement: LinkLabelsRequirement(
+        requirement: EdgeLabelsRequirement(
             origin: LabelPredicate(all: IndirectionLabel.Proxy),
             target: nil,
-            link: LabelPredicate(none: IndirectionLabel.IndirectOrigin)
+            edge: LabelPredicate(none: IndirectionLabel.IndirectOrigin)
         )
     )
     
-    /// All links that are marked as having indirect origin must
+    /// All edges that are marked as having indirect origin must
     /// have their origin to be a proxy.
     ///
-    public static let IndirectOriginIsProxy = LinkConstraint(
+    public static let IndirectOriginIsProxy = EdgeConstraint(
         name: "indirect_origin_is_proxy",
         description: """
-                     All links that are marked as having indirect origin must
+                     All edges that are marked as having indirect origin must
                      have their origin to be a proxy.
                      """,
         match: LabelPredicate(all: IndirectionLabel.IndirectOrigin),
-        requirement: LinkLabelsRequirement(
+        requirement: EdgeLabelsRequirement(
             origin: LabelPredicate(all: IndirectionLabel.Proxy),
             target: nil,
-            link: nil
+            edge: nil
         )
     )
 
-    /// All links that are marked as having indirect target must
+    /// All edges that are marked as having indirect target must
     /// have their target to be a proxy.
     ///
-    public static let IndirectTargetIsProxy = LinkConstraint(
+    public static let IndirectTargetIsProxy = EdgeConstraint(
         name: "indirect_target_is_proxy",
         description: """
-                     All links that are marked as having indirect target must
+                     All edges that are marked as having indirect target must
                      have their target to be a proxy.
                      """,
         match: LabelPredicate(all: IndirectionLabel.IndirectTarget),
-        requirement: LinkLabelsRequirement(
+        requirement: EdgeLabelsRequirement(
             origin: nil,
             target: LabelPredicate(all: IndirectionLabel.Proxy),
-            link: nil
+            edge: nil
         )
     )
     
     /// List of all indirection constraints.
     public static let All: [Constraint] = [
         ProxyHasSingleSubject,
-        SubjectLinkOriginIsDirectProxy,
+        SubjectEdgeOriginIsDirectProxy,
         IndirectOriginIsProxy,
         IndirectTargetIsProxy
     ]

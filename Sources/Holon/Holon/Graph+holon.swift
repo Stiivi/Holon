@@ -14,14 +14,14 @@ extension Graph {
 
     /// Connects a node to its parent holon.
     ///
-    /// Creates a properly annotated link between a node and holon that will
-    /// own the node. Link created this way can be used to manage holon
+    /// Creates a properly annotated edge between a node and holon that will
+    /// own the node. Edge created this way can be used to manage holon
     /// related constraints.
     ///
     /// See also: ``Graph/connect(from:to:labels:id:)``
     ///
     /// - Precondition: `holon` must be a a holon node.
-    /// - Precondition: `holon` must not already contain a link to another holon.
+    /// - Precondition: `holon` must not already contain an edge to another holon.
     ///
     /// - Note: Preconditions are met if the graph conforms to the
     /// ``HolonConstraint``.
@@ -30,7 +30,7 @@ extension Graph {
     public func connect(node: Node,
                         holon: Node,
                         labels: LabelSet = [],
-                        id: OID? = nil) -> Link {
+                        id: OID? = nil) -> Edge {
         precondition(holon.isHolon)
         precondition(node.holon == nil,
                      "A node already belongs to a holon")
@@ -39,35 +39,35 @@ extension Graph {
         
         return connect(from: node,
                        to: holon,
-                       labels: labels.union([HolonLabel.HolonLink]),
+                       labels: labels.union([HolonLabel.HolonEdge]),
                        id: id)
     }
     
     /// Remove a holon from the graph and remove all its children.
     ///
     @discardableResult
-    public func removeHolon(_ holon: Node) -> (links: [Link], nodes: [Node]) {
+    public func removeHolon(_ holon: Node) -> (edges: [Edge], nodes: [Node]) {
         precondition(holon.isHolon)
-        var removedLinks: [Link] = []
+        var removedEdges: [Edge] = []
         var removedNodes: [Node] = []
         
         // Re-wire the parent of holon's children.
         for child in holon.nodes {
             if child.isHolon {
                 let removed = removeHolon(child)
-                removedLinks += removed.links
+                removedEdges += removed.edges
                 removedNodes.append(child)
                 removedNodes += removed.nodes
             }
             else {
-                removedLinks += remove(child)
+                removedEdges += remove(child)
                 removedNodes.append(child)
             }
         }
         
-        removedLinks += remove(holon)
+        removedEdges += remove(holon)
         
-        return (links: removedLinks, nodes: removedNodes)
+        return (edges: removedEdges, nodes: removedNodes)
         
     }
     
@@ -75,26 +75,26 @@ extension Graph {
     /// to the removed node's parent holon. If the removed node has no parent,
     /// then the children will become top-level nodes in the holon hierarchy.
     ///
-    /// - Returns: A tuple with a list of removed links belonging to the removed
-    ///   holon, and a list of links created to the holon's parent.
+    /// - Returns: A tuple with a list of removed edges belonging to the removed
+    ///   holon, and a list of edges created to the holon's parent.
     ///
     @discardableResult
-    public func dissolveHolon(_ holon: Node) -> (removed: [Link], created: [Link]) {
+    public func dissolveHolon(_ holon: Node) -> (removed: [Edge], created: [Edge]) {
         precondition(holon.isHolon)
-        var created: [Link] = []
+        var created: [Edge] = []
         
         let parent = holon.holon
         
         // Re-wire the parent of holon's children.
         for child in holon.nodes {
-            let link = child.holonLink!
-            disconnect(link: link)
+            let edge = child.holonEdge!
+            disconnect(edge: edge)
             if let parent = parent {
-                let link = connect(node: child,
+                let edge = connect(node: child,
                                    holon: parent,
-                                   labels: link.labels,
-                                   id: link.id)
-                created.append(link)
+                                   labels: edge.labels,
+                                   id: edge.id)
+                created.append(edge)
             }
         }
         

@@ -6,11 +6,11 @@
 //
 
 
-/// Predicate that matches a graph object (either a node or a link) for
+/// Predicate that matches a graph object (either a node or an edge) for
 /// existence of labels. The tested object must have all the specified labels
 /// set.
 ///
-public class LabelPredicate: NodePredicate, LinkPredicate  {
+public class LabelPredicate: NodePredicate, EdgePredicate  {
     public let mode: MatchMode
     public let labels: LabelSet
     
@@ -68,11 +68,11 @@ public class LabelPredicate: NodePredicate, LinkPredicate  {
         }
     }
 
-    public func match(_ link: Link) -> Bool {
+    public func match(_ edge: Edge) -> Bool {
         switch mode {
-        case .all: return link.contains(labels: labels)
-        case .any: return !labels.intersection(link.labels).isEmpty
-        case .none: return labels.intersection(link.labels).isEmpty
+        case .all: return edge.contains(labels: labels)
+        case .any: return !labels.intersection(edge.labels).isEmpty
+        case .none: return labels.intersection(edge.labels).isEmpty
         }
     }
 }

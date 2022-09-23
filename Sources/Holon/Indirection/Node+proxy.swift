@@ -7,34 +7,34 @@
 
 // FIXME: Move this to Node.swift
 extension Node {
-    /// A link selector that matches a link from a proxy to its subject.
-    public static let SubjectSelector = LinkSelector(IndirectionLabel.Subject,
+    /// An edge selector that matches an edge from a proxy to its subject.
+    public static let SubjectSelector = EdgeSelector(IndirectionLabel.Subject,
                                                      direction: .outgoing)
     
     public var isProxy: Bool { contains(label: IndirectionLabel.Proxy) }
     
-    /// Link that is a representation of the proxy node.
+    /// Edge that is a representation of the proxy node.
     ///
-    /// Representation link is an outgoing link from the proxy node
+    /// Representation edge is an outgoing edge from the proxy node
     /// which has a label ``IndirectionLabel/Subject``.
     ///
-    public var subjectLink: Link? { outgoing.first { $0.isSubject } }
+    public var subjectEdge: Edge? { outgoing.first { $0.isSubject } }
     
     /// A node that the port represents. This is a direct subject, not the
-    /// real subject if the subject link is indirect.
+    /// real subject if the subject edge is indirect.
     ///
     /// To get the real subject use ``realSubjectPath()`` to get the
-    /// path to the real subject traversing indirect subject links.
-    /// Target of the last link, which can be retrieved using ``Path/target``,
+    /// path to the real subject traversing indirect subject edges.
+    /// Target of the last edge, which can be retrieved using ``Path/target``,
     /// is the real subject.
     ///
-    public var subject: Node? { subjectLink?.target }
+    public var subject: Node? { subjectEdge?.target }
     
     /// Get a path from a proxy node to the real subject. Real subject is a
-    /// node that is referenced by a direct subject link.
+    /// node that is referenced by a direct subject edge.
     ///
-    /// The function follows all indirect links from the provided proxy node
-    /// until it finds a subject link that direct.
+    /// The function follows all indirect edges from the provided proxy node
+    /// until it finds a subject edge that direct.
     ///
     /// - Precondition: Node must be a proxy and indirection integrity must
     ///   be assured.
@@ -43,17 +43,17 @@ extension Node {
         precondition(isProxy)
         
         var current = self
-        var trail: [Link] = []
+        var trail: [Edge] = []
         
         while true {
-            guard let link = current.subjectLink else {
+            guard let edge = current.subjectEdge else {
                 break
             }
             
-            trail.append(link)
+            trail.append(edge)
             
-            if link.hasIndirectTarget {
-                current = link.target
+            if edge.hasIndirectTarget {
+                current = edge.target
             }
             else {
                 break

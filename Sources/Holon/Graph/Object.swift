@@ -10,6 +10,8 @@
 ///
 public typealias OID = Object.ID
 
+// TODO: Consider to distinguish 'id' (in-app session) and 'persistentID'
+
 /// An abstract class representing all objects in a graph. Concrete
 /// kinds of graph objects are ``Node`` and ``Edge``.
 ///
@@ -56,7 +58,7 @@ open class Object: Identifiable, CustomStringConvertible {
         self.id = id ?? Object.defaultIDGenerator.next()
         self.labels = labels
     }
-
+    
 //    /// List of initial labels for a given graph object. Subclasses might
 //    /// override this method to provide set of default initial labels that
 //    /// will be set for that particular subclass. Default implementation

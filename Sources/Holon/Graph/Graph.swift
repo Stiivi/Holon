@@ -344,7 +344,7 @@ public class Graph: MutableGraphProtocol {
     ///
     ///     - edge: Edge to be removed.
     ///
-    public func disconnect(edge: Edge) {
+    public func remove(_ edge: Edge) {
         precondition(edge.graph === self,
                      "Trying to disconnect an unassociated edge or an edge from a different graph")
 
@@ -352,6 +352,17 @@ public class Graph: MutableGraphProtocol {
         willChange(change)
         rawDisconnect(edge)
         didChange(change)
+    }
+   
+    public func removeAll() {
+        for edge in edges {
+            edge.graph = nil
+        }
+        _edges.removeAll()
+        for node in nodes {
+            node.graph = nil
+        }
+        _nodes.removeAll()
     }
     
     // MARK: - Advanced Query

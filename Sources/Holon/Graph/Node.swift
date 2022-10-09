@@ -49,15 +49,19 @@ open class Node: Object, Copying {
 
     /// Create a node with a special role.
     /// 
-    convenience public init(id: OID?=nil, labels: LabelSet=LabelSet(), role: Role) {
+    public init(id: OID?=nil, labels: LabelSet=LabelSet(), role: Role = .`default`) {
+        // TODO: Reconsider existence of this initializer
+        // – we are just assigning some system labels, which can be removed
+        //   later anyway.
         if let label = role.label {
-            self.init(id: id, labels: labels.union([label]))
+            super.init(id: id, labels: labels.union([label]))
 
         }
         else {
-            self.init(id: id, labels: labels)
+            super.init(id: id, labels: labels)
         }
     }
+    
 
     /// Edges outgoing from the node, that is edges where the node is the
     /// origin.
@@ -104,3 +108,4 @@ extension Node: Hashable {
         hasher.combine(id)
     }
 }
+

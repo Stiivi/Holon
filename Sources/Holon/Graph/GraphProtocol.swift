@@ -17,7 +17,7 @@ public protocol GraphProtocol {
     /// graph.
     ///
     ///
-    func contains(node: Node) -> Bool
+    func contains(_ node: Node) -> Bool
     
     /// Check whether the graph contains an edge and whether the node is valid.
     ///
@@ -25,7 +25,7 @@ public protocol GraphProtocol {
     ///
     /// - Note: Edge comparison is based on its identity.
     ///
-    func contains(edge: Edge) -> Bool
+    func contains(_ edge: Edge) -> Bool
 
     /// Get a list of outgoing edges from a node.
     ///
@@ -88,11 +88,11 @@ public protocol GraphProtocol {
 }
 
 extension GraphProtocol {
-    public func contains(node: Node) -> Bool {
+    public func contains(_ node: Node) -> Bool {
         return nodes.contains { $0 === node }
     }
 
-    public func contains(edge: Edge) -> Bool {
+    public func contains(_ edge: Edge) -> Bool {
         return edges.contains { $0 === edge }
     }
     
@@ -155,6 +155,6 @@ extension GraphProtocol {
 public protocol MutableGraphProtocol: GraphProtocol {
     func add(_ node: Node)
     func remove(_ node: Node) -> [Edge]
+    func remove(_ edge: Edge)
     func connect(from origin: Node, to target: Node, labels: LabelSet, id: OID?) -> Edge
-    func disconnect(edge: Edge)
 }

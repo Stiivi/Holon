@@ -121,8 +121,8 @@ final class HolonTests: XCTestCase {
         outer.add(inner)
         inner.add(node)
         
-        XCTAssertFalse(outer.contains(node: node))
-        XCTAssertTrue(inner.contains(node: node))
+        XCTAssertFalse(outer.contains(node))
+        XCTAssertTrue(inner.contains(node))
     }
 }
 

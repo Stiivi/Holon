@@ -208,7 +208,7 @@ public class IndirectionRewriter {
                     && newTarget === proposedEdge.target,
                    "Proposed edge endpoints can not be changed")
 
-            graph.disconnect(edge: edge)
+            graph.remove(edge)
             graph.add(proposedEdge)
         }
         

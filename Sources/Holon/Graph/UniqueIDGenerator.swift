@@ -28,7 +28,7 @@ public protocol UniqueIDGenerator {
 ///   is marked as used and the number is higher than current sequence, all
 ///   numbers are just skipped and the next sequence would be the used +1.
 ///   
-public class SequentialIDGenerator {
+public class SequentialIDGenerator: UniqueIDGenerator {
     /// ID as a sequence number.
     var current: OID
     var used: Set<OID>

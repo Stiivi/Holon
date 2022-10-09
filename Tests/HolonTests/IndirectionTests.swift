@@ -370,7 +370,7 @@ final class IndirectionConstraintsTests: XCTestCase, ConstraintTestProtocol {
                                        labels: [IndirectionLabel.IndirectOrigin])
         assertConstraintViolation("indirect_origin_is_proxy")
 
-        graph.disconnect(edge: originEdge)
+        graph.remove(originEdge)
         graph.connect(from: origin,
                         to: target,
                     labels: [IndirectionLabel.IndirectTarget])

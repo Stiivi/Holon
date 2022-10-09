@@ -88,7 +88,7 @@ extension Graph {
         // Re-wire the parent of holon's children.
         for child in holon.nodes {
             let edge = child.holonEdge!
-            disconnect(edge: edge)
+            remove(edge)
             if let parent = parent {
                 let edge = connect(node: child,
                                    holon: parent,

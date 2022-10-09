@@ -6,16 +6,11 @@
 //
 //  Ported from Tarot.
 
-// TODO: This is a prototype
 
 /// Type for object attribute key.
 public typealias AttributeKey = String
 
 /// Type for object attribute values.
-//public typealias AttributeValue = Value
-// FIXME: Use Value from Simulation Foundation
-// For now we are using this only for generating user output
-//public typealias AttributeValue = CustomStringConvertible
 public typealias AttributeValue = ValueProtocol
 
 /// Type for a dictionary of graph object attributes.
@@ -48,7 +43,22 @@ extension KeyedValues {
     }
 }
 
-//public protocol MutableKeyedValues {
-//    var setAttribute(
-//}
-//
+/// Protocol for objects where attributes can be modified by using the attribute
+/// names.
+///
+/// This protocol is provided for inspectors and import/export functionality.
+///
+public protocol MutableKeyedValues {
+    func setAttribute(value: AttributeValue, forKey key: AttributeKey)
+    func setAttributes(_ dict: AttributeDictionary)
+}
+
+extension MutableKeyedValues {
+    public func setAttributes(_ dict: AttributeDictionary) {
+        for (key, value) in dict {
+            self.setAttribute(value: value, forKey: key)
+        }
+    }
+
+}
+

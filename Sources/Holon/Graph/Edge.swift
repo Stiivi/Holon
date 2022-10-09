@@ -12,9 +12,20 @@
 /// cases. Despite most of the functionality might be using the orientation,
 /// it does not prevent one to treat the edges as non-oriented.
 ///
-open class Edge: Object {
+open class Edge: Object, PersistableEdge {
     
-    
+    public var persistableTypeName: String { "Edge" }
+    required public convenience init(origin: Node,
+                                     target: Node,
+                                     record: ForeignRecord,
+                                     labels: LabelSet=LabelSet(),
+                                     id: OID?=nil) throws {
+        self.init(origin: origin,
+                  target: target,
+                  labels: labels,
+                  id: id)
+    }
+
     /// Origin node of the edge - a node from which the edge points from.
     ///
     public let origin: Node

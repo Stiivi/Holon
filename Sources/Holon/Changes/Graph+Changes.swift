@@ -24,7 +24,7 @@ extension Graph {
             add(edge)
             return [.removeEdge(edge)]
         case let .removeEdge(edge):
-            disconnect(edge: edge)
+            remove(edge)
             return [.addEdge(edge)]
         }
     }

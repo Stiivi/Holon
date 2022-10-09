@@ -53,7 +53,7 @@ final class GraphTests: XCTestCase {
         let edge = graph.connect(from: a, to: b)
         
         XCTAssertEqual(graph.edges.count, 1)
-        graph.disconnect(edge: edge)
+        graph.remove(edge)
         XCTAssertEqual(graph.edges.count, 0)
     }
 

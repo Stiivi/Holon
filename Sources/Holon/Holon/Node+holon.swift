@@ -144,9 +144,9 @@ extension Node: HolonProtocol, MutableGraphProtocol {
     ///
     /// - Precondition: At least one of origin or a target must belong to the holon.
     ///
-    public func disconnect(edge: Edge) {
+    public func remove(_ edge: Edge) {
         precondition(edge.origin.holon === self || edge.target.holon === self,
                      "Trying to disconnect an edge that does not belong to the holon, neither crosses its boundary")
-        graph!.disconnect(edge: edge)
+        graph!.remove(edge)
     }
 }

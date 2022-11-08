@@ -81,13 +81,51 @@ open class Object: Identifiable, CustomStringConvertible {
     }
 
     /// Sets object label.
+    ///
+    /// - Parameters:
+    ///     - label: Label to be added to the set of labels associated with
+    ///       the graph object. If the label already exists, nothing happens.
+    ///
     public func set(label: Label) {
+        self.graph?.willChange(.setLabel(self, label))
         labels.insert(label)
+        self.graph?.didChange(.setLabel(self, label))
     }
     
     /// Unsets object label.
+    ///
+    /// - Parameters:
+    ///     - label: Label to be removed from the set of labels associated with
+    ///       the graph object. If the label is not present, nothing happens.
+    ///
     public func unset(label: Label) {
+        self.graph?.willChange(.unsetLabel(self, label))
         labels.remove(label)
+        self.graph?.didChange(.unsetLabel(self, label))
+    }
+   
+    /// Notifies the graph observer that an attribute of the graph object is
+    /// about to be changed.
+    ///
+    /// Call this method for each observable property:
+    ///
+    /// ```swift
+    /// public class Comment: Node {
+    ///     public var text: String {
+    ///         willSet {
+    ///             self.willChangeAttribute("text", value: newValue)
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// - Note: This is part of a light-weight graph change observation
+    ///   mechanism. We are not using Apple's Combine framework here for
+    ///   portability reasons. This decision might be reconsidered in the
+    ///   future.
+    ///
+    public func willChangeAttribute(_ key: String, value: any ValueProtocol) {
+        self.graph?.willChange(.setAttribute(self, key, value))
     }
     
     open var description: String {
@@ -107,8 +145,12 @@ open class Object: Identifiable, CustomStringConvertible {
         return []
     }
     
-    open func attribute(forKey key: String) -> AttributeValue? {
+    open func attribute(forKey key: String) -> (any AttributeValue)? {
         return nil
+    }
+    
+    open func setAttribute(value: any AttributeValue, forKey key: AttributeKey) {
+        fatalError("Object \(type(of:self)) does not have an attribute '\(key)'")
     }
 }
 

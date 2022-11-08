@@ -26,6 +26,16 @@ extension Graph {
         case let .removeEdge(edge):
             remove(edge)
             return [.addEdge(edge)]
+        case let .setLabel(object, label):
+            object.set(label: label)
+            return [.unsetLabel(object, label)]
+        case let .unsetLabel(object, label):
+            object.unset(label: label)
+            return [.setLabel(object, label)]
+        case let .setAttribute(object, key, value):
+            let previous = object.attribute(forKey: key)!
+            object.setAttribute(value: value, forKey: key)
+            return [.setAttribute(object, key, previous)]
         }
     }
 }

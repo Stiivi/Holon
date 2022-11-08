@@ -6,7 +6,7 @@
 //
 
 
-public protocol PersistableObject: Object, KeyedValues {
+public protocol PersistableObject: Object, KeyedAttributes {
     /// Name of the type to be stored. The type name is then used to get a
     /// concrete type from ``PersistableGraphContext``.
     ///
@@ -117,7 +117,7 @@ public enum LoadError: Error {
 
 // TODO: Rename to "ExternalGraphContext" or exported, externalized, inout, ... something like that
 public class PersistableGraphContext {
-    public let idGenerator: UniqueIDGenerator?
+    public let idGenerator: UniqueIDGenerator
 
     public let nodeTypes: [String:PersistableNode.Type]
     public let defaultNodeType: PersistableNode.Type?

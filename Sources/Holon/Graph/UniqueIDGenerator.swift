@@ -41,14 +41,14 @@ public class SequentialIDGenerator: UniqueIDGenerator {
     
     /// Gets a next sequence id.
     public func next() -> OID {
-        var id = current
-        while used.contains(id) {
-            id += 1
+        while used.contains(current) {
             // We can remove the ID from the list of used, since we will never
             // touch it again. We just skip it.
             //
-            used.remove(id)
+            used.remove(current)
+            current += 1
         }
+        let id = current
         current += 1
         return id
     }

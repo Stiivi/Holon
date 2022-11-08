@@ -9,7 +9,7 @@
 
 /// Protocol for objects that can be represented as ``Value``.
 ///
-public protocol ValueProtocol {
+public protocol ValueProtocol: Hashable {
     /// Representation of the receiver as a ``Value``
     /// 
 //    func asValue() -> Value
@@ -27,8 +27,28 @@ public protocol ValueProtocol {
     /// Return string equivalent of the object, if possible.
     func stringValue() -> String?
     
-    
+    // FIXME: Replace this with Equatable
+    /// Tests whether two values are equal.
+    ///
+    /// Two objects conforming to value protocol are equal if they
+    /// are of the same type and if their values are equal.
+    ///
+    func isEqual(to other: any ValueProtocol) -> Bool
     //    func convert(to otherType: ValueType) -> Value?
+}
+
+extension ValueProtocol {
+    public func isEqual(to other: any ValueProtocol) -> Bool {
+        guard self.valueType == other.valueType else {
+            return false
+        }
+        switch self.valueType {
+        case .bool: return self.boolValue() == other.boolValue()
+        case .int: return self.intValue() == other.intValue()
+        case .double: return self.doubleValue() == other.doubleValue()
+        case .string: return self.stringValue() == other.stringValue()
+        }
+    }
 }
 
 /// ValueType specifies a data type of a value that is used in interfaces.

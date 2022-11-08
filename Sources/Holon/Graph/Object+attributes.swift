@@ -14,11 +14,11 @@ public typealias AttributeKey = String
 public typealias AttributeValue = ValueProtocol
 
 /// Type for a dictionary of graph object attributes.
-public typealias AttributeDictionary = [AttributeKey:AttributeValue]
+public typealias AttributeDictionary = [AttributeKey:any AttributeValue]
 
 /// A protocol for objects that provide their attributes by keys.
 ///
-public protocol KeyedValues {
+public protocol KeyedAttributes {
     /// List of attributes that the object provides.
     ///
     var attributeKeys: [AttributeKey] { get }
@@ -29,17 +29,21 @@ public protocol KeyedValues {
 
     /// Returns an attribute value for given key.
     ///
-    func attribute(forKey key: String) -> AttributeValue?
-///    subscript(key: AttributeKey) -> AttributeValue? { get }
+    func attribute(forKey key: String) -> (any AttributeValue)?
+    subscript(key key: AttributeKey) -> (any AttributeValue)? { get }
 }
 
-extension KeyedValues {
+extension KeyedAttributes {
     public func dictionary(withKeys: [AttributeKey]) -> AttributeDictionary {
         let tuples = attributeKeys.compactMap { key in
             self.attribute(forKey: key).map { (key, $0) }
         }
-
+        
         return AttributeDictionary(uniqueKeysWithValues: tuples)
+    }
+    
+    public subscript(key key: AttributeKey) -> (any AttributeValue)? {
+        return attribute(forKey: key)
     }
 }
 
@@ -48,17 +52,25 @@ extension KeyedValues {
 ///
 /// This protocol is provided for inspectors and import/export functionality.
 ///
-public protocol MutableKeyedValues {
-    func setAttribute(value: AttributeValue, forKey key: AttributeKey)
+public protocol MutableKeyedAttributes: KeyedAttributes {
+    func setAttribute(value: any AttributeValue, forKey key: AttributeKey)
     func setAttributes(_ dict: AttributeDictionary)
+    subscript(key key: AttributeKey) -> (any AttributeValue)? { get set }
 }
 
-extension MutableKeyedValues {
+extension MutableKeyedAttributes {
     public func setAttributes(_ dict: AttributeDictionary) {
         for (key, value) in dict {
             self.setAttribute(value: value, forKey: key)
         }
     }
+    public subscript(key key: AttributeKey) -> (any AttributeValue)? {
+        get {
+            return attribute(forKey: key)
+        }
+        set(value) {
+            setAttribute(value: value!, forKey: key)
+        }
+    }
 
 }
-

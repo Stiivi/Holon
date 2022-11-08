@@ -69,15 +69,9 @@ public class Graph: MutableGraphProtocol {
     /// List of edges in the graph.
     public var edges: [Edge] { Array(_edges.values) }
     
-    /// Publisher of graph changes before they are applied. The associated
-    /// graph object and the graph are in their original state.
+    /// Object observing graph changes.
     ///
-//    public var graphWillChange = PassthroughSubject<GraphChange, Never>()
-    
-    /// Publisher of graph changes after they are applied. The associated graph
-    /// object and the graph are in their changed state.
-    ///
-//    public var graphDidChange = PassthroughSubject<GraphChange, Never>()
+    public var observer: GraphObserver?
 
     // MARK: - Initialisation
     
@@ -482,12 +476,12 @@ public class Graph: MutableGraphProtocol {
 
     /// Called when graph is about to be changed.
     func willChange(_ change: GraphChange) {
-//        graphWillChange.send(change)
+        observer?.graphWillChange(graph: self, change: change)
     }
     
     /// Called when graph has changed.
     func didChange(_ change: GraphChange) {
-//        graphDidChange.send(change)
+//        observer?.graphDidChange(graph: self, change: change)
     }
 
 

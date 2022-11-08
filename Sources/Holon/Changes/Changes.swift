@@ -38,12 +38,15 @@ public enum GraphChange: Equatable {
     /// Denotes a change to a graph object - either a node or an edge - where
     /// an attribute was set to a new, non-nil value.
     ///
-//    case setAttribute(Object, AttributeKey, Value)
+    case setAttribute(Object, AttributeKey, any ValueProtocol)
 
-    /// Denotes a change to a graph object - either a node or an edge - where
-    /// an attribute was removed or set to a `nil` value.
-    ///
+//    /// Denotes a change to a graph object - either a node or an edge - where
+//    /// an attribute was removed or set to a `nil` value.
+//    ///
 //    case unsetAttribute(Object, AttributeKey)
+
+    case setLabel(Object, Label)
+    case unsetLabel(Object, Label)
     
     /// Returns `true` if the change is related to given object. For node
     /// removal, node addition and attribute changes the object is related
@@ -57,8 +60,9 @@ public enum GraphChange: Equatable {
         case let .removeNode(node): return node === object
         case let .addEdge(edge): return edge === object || edge.origin === object || edge.target === object
         case let .removeEdge(edge): return edge === object || edge.origin === object || edge.target === object
-//        case let .setAttribute(another, _, _): return another === object
-//        case let .unsetAttribute(another, _): return another === object
+        case let .setLabel(another, _): return another === object
+        case let .unsetLabel(another, _): return another === object
+        case let .setAttribute(another, _, _): return another === object
         }
     }
     
@@ -76,10 +80,12 @@ public enum GraphChange: Equatable {
             return ledge === redge
         case let (.removeEdge(ledge), .removeEdge(redge)):
             return ledge === redge
-//        case let (.setAttribute(lobj, lattr, lvalue), .setAttribute(robj, rattr, rvalue)):
-//            return lobj == robj && lattr == rattr && lvalue == rvalue
-//        case let (.unsetAttribute(lobj, lattr), .unsetAttribute(robj, rattr)):
-//            return lobj == robj && lattr == rattr
+        case let (.setLabel(lobj, llabel), .setLabel(robj, rlabel)):
+            return lobj === robj && llabel == rlabel
+        case let (.unsetLabel(lobj, llabel), .unsetLabel(robj, rlabel)):
+            return lobj === robj && llabel == rlabel
+        case let (.setAttribute(lobj, lattr, lvalue), .setAttribute(robj, rattr, rvalue)):
+            return lobj === robj && lattr == rattr && lvalue.isEqual(to: rvalue)
         default: return false
         }
     }

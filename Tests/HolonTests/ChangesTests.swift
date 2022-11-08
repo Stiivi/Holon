@@ -8,9 +8,41 @@
 import XCTest
 @testable import Holon
 
+class Thing: Node {
+    var name: String {
+        willSet {
+            self.graph?.willChange(.setAttribute(self, "name", name))
+        }
+        
+    }
+    
+    init(name: String) {
+        self.name = name
+    }
+    
+    override var attributeKeys: [AttributeKey] {
+        ["name"]
+    }
+    
+    override func attribute(forKey key: String) -> (any AttributeValue)? {
+        switch key {
+        case "name": return name
+        default: return nil
+        }
+    }
+    
+    public override func setAttribute(value: AttributeValue, forKey key: AttributeKey) {
+        switch key {
+        case "name": self.name = value.stringValue()!
+        default: super.setAttribute(value: value, forKey: key)
+        }
+    }
+}
+
 final class ChangesTests: XCTestCase {
+    let graph = Graph()
+    
     func testAddNodeChange() throws {
-        let graph = Graph()
         let node = Node()
         let change: GraphChange = .addNode(node)
 
@@ -25,7 +57,6 @@ final class ChangesTests: XCTestCase {
     }
 
     func testRemoveNodeChange() throws {
-        let graph = Graph()
         let node = Node()
         let change: GraphChange = .removeNode(node)
 
@@ -37,7 +68,6 @@ final class ChangesTests: XCTestCase {
     }
 
     func testRemoveNodeWithEdgesChange() throws {
-        let graph = Graph()
         let node = Node()
         let change: GraphChange = .removeNode(node)
         
@@ -52,7 +82,6 @@ final class ChangesTests: XCTestCase {
     }
 
     func testAddEdgeChange() throws {
-        let graph = Graph()
         let node = Node()
         graph.add(node)
         let edge = Edge(origin: node, target: node)
@@ -66,7 +95,6 @@ final class ChangesTests: XCTestCase {
     }
 
     func testRemoveEdgeChange() throws {
-        let graph = Graph()
         let node = Node()
         graph.add(node)
         let edge = Edge(origin: node, target: node)
@@ -80,4 +108,38 @@ final class ChangesTests: XCTestCase {
         XCTAssertEqual(graph.edges.count, 0)
         XCTAssertEqual(revert, [.addEdge(edge)])
     }
+    
+    func testSetLabelChange() throws {
+        let node = Node(labels: ["one"])
+        graph.add(node)
+        
+        let change: GraphChange = .setLabel(node, "two")
+        
+        let revert = graph.applyChange(change)
+        
+        XCTAssertEqual(node.labels, Set(["one", "two"]))
+        XCTAssertEqual(revert, [.unsetLabel(node, "two")])
+
+        let revert2 = graph.applyChange(revert[0])
+        XCTAssertEqual(node.labels, Set(["one"]))
+        XCTAssertEqual(revert2, [.setLabel(node, "two")])
+
+    }
+    func testSetAttributeChange() throws {
+        let node = Thing(name: "Alice")
+        graph.add(node)
+        
+        let change: GraphChange = .setAttribute(node, "name", "Bob")
+        
+        let revert = graph.applyChange(change)
+        
+        XCTAssertEqual(node.name, "Bob")
+        XCTAssertEqual(revert, [.setAttribute(node, "name", "Alice")])
+
+        let revert2 = graph.applyChange(revert[0])
+        XCTAssertEqual(node.name, "Alice")
+        XCTAssertEqual(revert2, [.setAttribute(node, "name", "Bob")])
+
+    }
+
 }

@@ -135,9 +135,8 @@ public class IndirectionRewriter {
     ///   is correct. If the constraints are not met, then the function will
     ///   fail with an error.
     ///
-    public func rewrite(transform: ((IndirectionRewriter.Context) -> Edge?)? = nil) -> Graph {
+    public func rewrite(transform: ((IndirectionRewriter.Context) -> Edge?)? = nil) {
         // Nodes without ports
-        let graph = self.graph.copy()
 
         // Get all indirect edges that are not subject edges (edges from a proxy
         // to its real subject)
@@ -211,8 +210,6 @@ public class IndirectionRewriter {
             graph.remove(edge)
             graph.add(proposedEdge)
         }
-        
-        return graph
     }
     
 }

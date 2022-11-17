@@ -124,18 +124,18 @@ extension Node: HolonProtocol, MutableGraphProtocol {
         return graph!.remove(node)
     }
     
-    /// Connects two nodes within the holon. Both nodes must belong to the same
-    /// holon.
+    /// Adds an edge to the holon. Both endpoints of the edge must belong to the
+    /// same holon.
     ///
     /// This is a safe way of connecting two nodes within a holon.
     ///
     /// - Precondition: Both origin and target holon must be the same as the
     ///   receiver holon.
     ///
-    public func connect(from origin: Node, to target: Node, labels: LabelSet, id: OID?) -> Edge {
-        precondition(origin.holon === self, "Trying to connect a node (as origin) that belongs to another holon")
-        precondition(target.holon === self, "Trying to connect a node (as target) that belongs to another holon")
-        return graph!.connect(from: origin, to: target, labels: labels, id: id)
+    public func add(_ edge: Edge) {
+        precondition(edge.origin.holon === self, "Trying to connect a node (as origin) that belongs to another holon")
+        precondition(edge.target.holon === self, "Trying to connect a node (as target) that belongs to another holon")
+        return graph!.add(edge)
     }
     
     /// Disconnects an edge.

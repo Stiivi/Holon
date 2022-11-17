@@ -178,12 +178,9 @@ public class Graph: MutableGraphProtocol {
         node.graph = self
 
         let change = GraphChange.addNode(node)
-        willChange(change)
         
         // Associate the node
         _nodes[node.id] = node
-        
-        didChange(change)
     }
     
     /// Removes node from the graph and removes all incoming and outgoing edges
@@ -207,9 +204,6 @@ public class Graph: MutableGraphProtocol {
 
         var disconnected: [Edge] = []
         
-        let change = GraphChange.removeNode(node)
-        willChange(change)
-
         // First we remove all the connections
         for edge in edges {
             if edge.origin === node || edge.target === node {
@@ -221,7 +215,6 @@ public class Graph: MutableGraphProtocol {
         _nodes[node.id] = nil
         node.graph = nil
 
-        didChange(change)
         return disconnected
     }
     
@@ -267,17 +260,16 @@ public class Graph: MutableGraphProtocol {
                         to target: Node,
                         labels: LabelSet=[],
                         id: OID?=nil) -> Edge {
+        // TODO: Remove this method in favour of default MutableGraphProtocol implementation
         precondition(origin.graph === self, "Connecting from an origin from a different graph")
         precondition(target.graph === self, "Connecting to a target from a different graph")
         
         let edge = Edge(origin: origin, target: target, labels: labels, id: id)
         
         let change = GraphChange.addEdge(edge)
-        willChange(change)
 
         edge.graph = self
         _edges[edge.id] = edge
-        didChange(change)
         
         return edge
     }
@@ -305,14 +297,9 @@ public class Graph: MutableGraphProtocol {
         precondition(contains(node: edge.origin), "Origin of an edge does not belong to the graph")
         precondition(contains(node: edge.target), "Target of an edge does not belong to the graph")
 
-        let change = GraphChange.addEdge(edge)
-        willChange(change)
-        
         // Register the object
         edge.graph = self
         _edges[edge.id] = edge
-        
-        didChange(change)
     }
 
     /// Removes a specific edge from the graph. This method is shared for
@@ -343,9 +330,7 @@ public class Graph: MutableGraphProtocol {
                      "Trying to disconnect an unassociated edge or an edge from a different graph")
 
         let change = GraphChange.removeEdge(edge)
-        willChange(change)
         rawDisconnect(edge)
-        didChange(change)
     }
    
     public func removeAll() {
@@ -472,18 +457,6 @@ public class Graph: MutableGraphProtocol {
         precondition(node.graph === self, "Node is not associated with this graph.")
         return edges.contains { $0.origin === node || $0.target === node }
     }
-
-
-    /// Called when graph is about to be changed.
-    func willChange(_ change: GraphChange) {
-        observer?.graphWillChange(graph: self, change: change)
-    }
-    
-    /// Called when graph has changed.
-    func didChange(_ change: GraphChange) {
-//        observer?.graphDidChange(graph: self, change: change)
-    }
-
 
     public var description: String {
         "Graph(nodes: \(nodes.count), edges: \(edges.count))"

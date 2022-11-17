@@ -153,8 +153,28 @@ extension GraphProtocol {
 }
 
 public protocol MutableGraphProtocol: GraphProtocol {
+    func removeAll()
     func add(_ node: Node)
+    func add(_ edge: Edge)
     func remove(_ node: Node) -> [Edge]
     func remove(_ edge: Edge)
     func connect(from origin: Node, to target: Node, labels: LabelSet, id: OID?) -> Edge
+}
+
+extension MutableGraphProtocol {
+    public func connect(from origin: Node, to target: Node, labels: LabelSet, id: OID?) -> Edge {
+        let edge = Edge(origin: origin, target: target, labels: labels, id: id)
+        add(edge)
+        return edge
+    }
+    
+    public func removeAll() {
+        for edge in edges {
+            remove(edge)
+        }
+        for node in nodes {
+            remove(node)
+        }
+    }
+
 }

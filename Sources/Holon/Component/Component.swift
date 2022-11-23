@@ -6,7 +6,6 @@
 //
 
 public protocol Component {
-    
 }
 
 

@@ -9,7 +9,7 @@ import XCTest
 @testable import Holon
 
 final class NodeIndirectionTests: XCTestCase {
-    let graph: Graph = Graph()
+    let world: World = World()
 
     func testIsProxy() throws {
         let regular = Node(labels: ["regular"])
@@ -24,12 +24,12 @@ final class NodeIndirectionTests: XCTestCase {
         let proxy1 = Node(labels: ["proxy1"], role: .proxy)
         let proxy2 = Node(labels: ["proxy2"], role: .proxy)
 
-        graph.add(target)
-        graph.add(proxy1)
-        graph.add(proxy2)
+        world.add(target)
+        world.add(proxy1)
+        world.add(proxy2)
 
-        graph.connect(from: proxy1, to: target)
-        let edge2 = graph.connect(proxy: proxy2, representing: target)
+        world.add(Edge(origin: proxy1, target: target))
+        let edge2 = world.graph.connect(proxy: proxy2, representing: target)
 
         XCTAssertNil(target.subjectEdge)
         XCTAssertNil(proxy1.subjectEdge)
@@ -42,12 +42,12 @@ final class NodeIndirectionTests: XCTestCase {
         let proxy1 = Node(labels: ["proxy1"], role: .proxy)
         let proxy2 = Node(labels: ["proxy2"], role: .proxy)
 
-        graph.add(target)
-        graph.add(proxy1)
-        graph.add(proxy2)
+        world.add(target)
+        world.add(proxy1)
+        world.add(proxy2)
 
-        let edge2 = graph.connect(proxy: proxy2, representing: target)
-        let edge1 = graph.connect(proxy: proxy1, representing: proxy2, labels: [IndirectionLabel.IndirectTarget])
+        let edge2 = world.graph.connect(proxy: proxy2, representing: target)
+        let edge1 = world.graph.connect(proxy: proxy1, representing: proxy2, labels: [IndirectionLabel.IndirectTarget])
 
         let path1 = proxy1.realSubjectPath()
         XCTAssertEqual(path1.edges, [edge1, edge2])
@@ -60,13 +60,13 @@ final class NodeIndirectionTests: XCTestCase {
         let proxy1 = Node(labels: ["proxy1"], role: .proxy)
         let proxy2 = Node(labels: ["proxy2"], role: .proxy)
 
-        graph.add(target)
-        graph.add(proxy1)
-        graph.add(proxy2)
+        world.add(target)
+        world.add(proxy1)
+        world.add(proxy2)
 
-        let edge2 = graph.connect(proxy: proxy2, representing: target)
+        let edge2 = world.graph.connect(proxy: proxy2, representing: target)
         // Note: This is direct edge, it should not be followed further
-        let edge1 = graph.connect(proxy: proxy1, representing: proxy2)
+        let edge1 = world.graph.connect(proxy: proxy1, representing: proxy2)
 
         let path1 = proxy1.realSubjectPath()
         XCTAssertEqual(path1.edges, [edge1])
@@ -79,23 +79,25 @@ final class NodeIndirectionTests: XCTestCase {
 }
 
 final class IndirectionRewriterTests: XCTestCase {
-    var graph: Graph!
+    // FIXME: Use graph
+    var world: World!
     var rewriter: IndirectionRewriter!
     
     override func setUp() {
-        graph = Graph()
-        rewriter = IndirectionRewriter(graph)
+        world = World()
+        rewriter = IndirectionRewriter()
     }
     
     func testDoNothing() throws {
         let node = Node()
-        graph.add(node)
-        graph.connect(from: node, to: node)
+        world.add(node)
+        world.add(Edge(origin: node, target: node))
         
-        let new = rewriter.rewrite()
+        let new = world.graph.copy()
+        rewriter.rewrite(new)
         
-        XCTAssertEqual(new.nodes, graph.nodes)
-        XCTAssertEqual(new.edges, graph.edges)
+        XCTAssertEqual(new.nodes, world.nodes)
+        XCTAssertEqual(new.edges, world.edges)
     }
     
     func testResolveProxy() throws {
@@ -109,18 +111,19 @@ final class IndirectionRewriterTests: XCTestCase {
         let proxy = Node(role: .proxy)
         let target = Node(labels: ["target"])
         
-        graph.add(origin)
-        graph.add(proxy)
-        graph.add(target)
+        world.add(origin)
+        world.add(proxy)
+        world.add(target)
 
-        graph.connect(proxy: proxy, representing: target)
+        world.graph.connect(proxy: proxy, representing: target)
         
-        let indirectEdge = graph.connect(from: origin,
+        let indirectEdge = world.connect(from: origin,
                                          to: proxy,
                                          labels: [IndirectionLabel.IndirectTarget],
                                          id: 1)
 
-        let new = rewriter.rewrite()
+        let new = world.graph.copy()
+        rewriter.rewrite(new)
         
         let edge = new.edge(indirectEdge.id)!
         XCTAssertEqual(edge.origin, origin)
@@ -144,22 +147,23 @@ final class IndirectionRewriterTests: XCTestCase {
         let proxy = Node(role: .proxy)
         let target = Node(labels: ["target"])
         
-        graph.add(origin)
-        graph.add(proxy)
-        graph.add(target)
+        world.add(origin)
+        world.add(proxy)
+        world.add(target)
 
-        graph.connect(proxy: proxy, representing: target)
+        world.graph.connect(proxy: proxy, representing: target)
         
-        let indirect1 = graph.connect(from: origin,
+        let indirect1 = world.connect(from: origin,
                                       to: proxy,
                                       labels: [IndirectionLabel.IndirectTarget, "one"],
                                       id: 1)
-        let indirect2 = graph.connect(from: origin,
+        let indirect2 = world.connect(from: origin,
                                       to: proxy,
                                       labels: [IndirectionLabel.IndirectTarget, "two"],
                                       id: 2)
 
-        let new = rewriter.rewrite()
+        let new = world.graph.copy()
+        rewriter.rewrite(new)
         
         let edge1 = new.edge(indirect1.id)!
         XCTAssertEqual(edge1.origin, origin)
@@ -183,20 +187,22 @@ final class IndirectionRewriterTests: XCTestCase {
         let proxy1 = Node(labels: ["proxy1"], role: .proxy)
         let proxy2 = Node(labels: ["proxy2"], role: .proxy)
 
-        graph.add(origin)
-        graph.add(target)
-        graph.add(proxy1)
-        graph.add(proxy2)
+        world.add(origin)
+        world.add(target)
+        world.add(proxy1)
+        world.add(proxy2)
 
-        graph.connect(proxy: proxy2, representing: target)
-        graph.connect(proxy: proxy1, representing: proxy2, labels: [IndirectionLabel.IndirectTarget])
+        world.graph.connect(proxy: proxy2, representing: target)
+        world.graph.connect(proxy: proxy1, representing: proxy2, labels: [IndirectionLabel.IndirectTarget])
 
-        let indirectEdge = graph.connect(from: origin,
+        let indirectEdge = world.connect(from: origin,
                                          to: proxy1,
                                          labels: [IndirectionLabel.IndirectTarget],
                                          id: 1)
 
-        let new = rewriter.rewrite()
+        let new = world.graph.copy()
+        rewriter.rewrite(new)
+        
         let edge = new.edge(indirectEdge.id)!
         XCTAssertEqual(edge.origin, origin)
         XCTAssertEqual(edge.target, target)
@@ -214,20 +220,21 @@ final class IndirectionRewriterTests: XCTestCase {
         let proxy1 = Node(labels: ["proxy1"], role: .proxy)
         let proxy2 = Node(labels: ["proxy2"], role: .proxy)
 
-        graph.add(origin)
-        graph.add(target)
-        graph.add(proxy1)
-        graph.add(proxy2)
+        world.add(origin)
+        world.add(target)
+        world.add(proxy1)
+        world.add(proxy2)
 
-        graph.connect(proxy: proxy2, representing: target)
-        graph.connect(proxy: proxy1, representing: proxy2)
+        world.graph.connect(proxy: proxy2, representing: target)
+        world.graph.connect(proxy: proxy1, representing: proxy2)
 
-        let indirectEdge = graph.connect(from: origin,
+        let indirectEdge = world.connect(from: origin,
                                          to: proxy1,
                                          labels: [IndirectionLabel.IndirectTarget],
                                          id: 1)
 
-        let new = rewriter.rewrite()
+        let new = world.graph.copy()
+        rewriter.rewrite(new)
         let edge = new.edge(indirectEdge.id)!
         XCTAssertEqual(edge.origin, origin)
         XCTAssertEqual(edge.target, proxy2)
@@ -244,22 +251,25 @@ final class IndirectionRewriterTests: XCTestCase {
         let proxy = Node(labels: ["y"], role: .proxy)
         let nodeA = Node(labels: ["a"])
         
-        graph.add(nodeX)
-        graph.add(proxy)
-        graph.add(nodeA)
+        world.add(nodeX)
+        world.add(proxy)
+        world.add(nodeA)
         
-        graph.connect(proxy: proxy, representing: nodeA)
-        let originalEdge = graph.connect(from: proxy,
+        world.graph.connect(proxy: proxy, representing: nodeA)
+        let originalEdge = world.graph.connect(from: proxy,
                                          to: nodeX,
                                          labels: [IndirectionLabel.IndirectOrigin])
 
-        let new = rewriter.rewrite() {
+        let new = world.graph.copy()
+        let rewriter = IndirectionRewriter {
             context in
             context.proposed.set(label: "aliasY")
             context.proposed.origin.set(label: "aliasY")
             return nil
         }
 
+        rewriter.rewrite(new)
+        
         let incoming = new.edge(originalEdge.id)!
         let newA = new.node(nodeA.id)!
         let newX = new.node(nodeX.id)!
@@ -275,23 +285,24 @@ final class IndirectionRewriterTests: XCTestCase {
         let proxy = Node(labels: ["y"], role: .proxy)
         let nodeA = Node(labels: ["a"])
         
-        graph.add(nodeX)
-        graph.add(proxy)
-        graph.add(nodeA)
+        world.add(nodeX)
+        world.add(proxy)
+        world.add(nodeA)
         
-        graph.connect(proxy: proxy, representing: nodeA)
-        let originalEdge = graph.connect(from: proxy,
+        world.graph.connect(proxy: proxy, representing: nodeA)
+        let originalEdge = world.graph.connect(from: proxy,
                                          to: nodeX,
                                          labels: [IndirectionLabel.IndirectOrigin])
 
-        let new = rewriter.rewrite() {
+        let rewriter = IndirectionRewriter {
             context in
             return Edge(origin: context.proposed.origin,
                         target: context.proposed.target,
                         labels: ["somethingNew"],
                         id: 1000)
         }
-
+        let new = world.graph.copy()
+        rewriter.rewrite(new)
         XCTAssertNil(new.edge(originalEdge.id))
 
         let edge = new.edge(1000)!

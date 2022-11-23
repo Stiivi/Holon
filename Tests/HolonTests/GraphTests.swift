@@ -32,7 +32,6 @@ final class GraphTests: XCTestCase {
         let edge = graph.connect(from: a, to: b)
 
         XCTAssertEqual(graph.edges.count, 1)
-        XCTAssertIdentical(edge.graph, graph)
         XCTAssertIdentical(edge.origin, a)
         XCTAssertIdentical(edge.target, b)
         if let first = graph.edges.first {

@@ -99,6 +99,8 @@ final class ConstraintsTests: XCTestCase {
 }
 
 final class EdgeRequirementsTests: XCTestCase {
+    let graph = Graph()
+
     func testRejectAll() throws {
         let graph = Graph()
         let node = Node()
@@ -107,7 +109,7 @@ final class EdgeRequirementsTests: XCTestCase {
         let edge2 = graph.connect(from: node, to: node, labels: ["two"])
         
         let requirement = RejectAll()
-        let violations = requirement.check([edge1, edge2])
+        let violations = requirement.check(graph: graph, edges: [edge1, edge2])
         XCTAssertEqual(violations.count, 2)
         XCTAssertEqual(violations, [edge1, edge2])
         
@@ -115,9 +117,11 @@ final class EdgeRequirementsTests: XCTestCase {
 }
 
 final class TestUniqueProperty: XCTestCase {
+    let graph = Graph()
+
     func testEmpty() throws {
         let req = UniqueProperty<OID> { $0.id }
-        let violations = req.check(objects: [])
+        let violations = req.check(graph: graph, objects: [])
         XCTAssertTrue(violations.isEmpty)
     }
 
@@ -129,7 +133,7 @@ final class TestUniqueProperty: XCTestCase {
             Node(id: 30),
         ]
         
-        let violations = req.check(objects: objects)
+        let violations = req.check(graph: graph, objects: objects)
         XCTAssertTrue(violations.isEmpty)
     }
 
@@ -143,7 +147,7 @@ final class TestUniqueProperty: XCTestCase {
         let objects = [n1, n1d, n2, n3, n3d]
 
         // FIXME: Once we fix protocol remove the map
-        let violations = req.check(objects: objects).map { $0 as! Node }
+        let violations = req.check(graph: graph, objects: objects).map { $0 as! Node }
         XCTAssertEqual(violations.count, 4)
         
         XCTAssertTrue(violations.contains(n1))
@@ -170,7 +174,7 @@ final class TestEdgeLabelsRequirement: XCTestCase {
             edge: nil
         )
         
-        let invalid = requirement.check(graph.edges)
+        let invalid = requirement.check(graph: graph, edges: graph.edges)
         
         XCTAssertEqual(invalid.count, 1)
         XCTAssertTrue(invalid.contains(invalidEdge))

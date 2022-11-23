@@ -39,7 +39,7 @@ public class NodeConstraint: Constraint {
     ///
     public func check(_ graph: Graph) -> (nodes: [Node], edges: [Edge]) {
         let matched = graph.nodes.filter { match.match($0) }
-        let violating = requirement.check(matched)
+        let violating = requirement.check(graph: graph, nodes: matched)
         return (nodes: violating, edges: [])
     }
 }
@@ -52,7 +52,7 @@ public protocol NodeConstraintRequirement {
     ///
     /// - Returns: List of graph objects that cause constraint violation.
     ///
-    func check(_ nodes: [Node]) -> [Node]
+    func check(graph: Graph, nodes: [Node]) -> [Node]
 }
 
 
@@ -81,10 +81,7 @@ public class UniqueNeighbourRequirement: NodeConstraintRequirement {
         self.init(EdgeSelector(label, direction: direction), required: required)
     }
     
-    public func check(_ node: Node) -> Bool {
-        guard let graph = node.graph else {
-            preconditionFailure("Node must be associated with a graph to be checked")
-        }
+    public func check(graph: Graph, node: Node) -> Bool {
         let edges = graph.neighbours(node, selector: edgeSelector)
         
         if isRequired {
@@ -95,7 +92,7 @@ public class UniqueNeighbourRequirement: NodeConstraintRequirement {
         }
     }
 
-    public func check(_ nodes: [Node]) -> [Node] {
-        return nodes.filter { !check($0) }
+    public func check(graph: Graph, nodes: [Node]) -> [Node] {
+        return nodes.filter { !check(graph: graph, node: $0) }
     }
 }

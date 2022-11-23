@@ -12,8 +12,8 @@
 /// process.
 ///
 public class IndirectionRewriter {
-    public let graph: Graph
-   
+    public let transform: ((IndirectionRewriter.Context) -> Edge?)?
+                           
     /// Rewriting context that is passed to the caller to allow adjustments
     /// of the newly created edge.
     ///
@@ -49,8 +49,8 @@ public class IndirectionRewriter {
     /// resolved to direct edges. Edge ID of the resolved edge is the same as
     /// the edge ID of the indirect edge.
     /// 
-    public init(_ graph: Graph) {
-        self.graph = graph
+    public init(_ transform: ((IndirectionRewriter.Context) -> Edge?)? = nil) {
+        self.transform = transform
     }
     
     
@@ -135,7 +135,7 @@ public class IndirectionRewriter {
     ///   is correct. If the constraints are not met, then the function will
     ///   fail with an error.
     ///
-    public func rewrite(transform: ((IndirectionRewriter.Context) -> Edge?)? = nil) {
+    public func rewrite(_ graph: Graph) {
         // Nodes without ports
 
         // Get all indirect edges that are not subject edges (edges from a proxy
@@ -198,7 +198,7 @@ public class IndirectionRewriter {
             // Give the caller a chance to modify the proposed edge or to
             // provide a new edge.
             //
-            if let transform = transform {
+            if let transform = self.transform {
                 if let transformed = transform(context) {
                     proposedEdge = transformed
                 }

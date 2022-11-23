@@ -7,7 +7,7 @@
 
 /// Protocol for generators of unique object IDs.
 ///
-public protocol UniqueIDGenerator {
+public protocol IdentityGenerator {
     
     /// Returns a next unique object ID.
     func next() -> OID
@@ -28,7 +28,7 @@ public protocol UniqueIDGenerator {
 ///   is marked as used and the number is higher than current sequence, all
 ///   numbers are just skipped and the next sequence would be the used +1.
 ///   
-public class SequentialIDGenerator: UniqueIDGenerator {
+public class SequentialIDGenerator: IdentityGenerator {
     /// ID as a sequence number.
     var current: OID
     var used: Set<OID>

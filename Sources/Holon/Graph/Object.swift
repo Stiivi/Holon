@@ -10,6 +10,7 @@
 ///
 public typealias OID = Object.ID
 
+
 // TODO: Consider to distinguish 'id' (in-app session) and 'persistentID'
 
 /// An abstract class representing all objects in a graph. Concrete
@@ -20,20 +21,22 @@ public typealias OID = Object.ID
 /// All object's attributes are optional. It is up to the user to add
 /// constraints or validations for the attributes of graph objects.
 ///
-open class Object: Identifiable, CustomStringConvertible {
+public class Object: Identifiable, CustomStringConvertible {
     static let defaultIDGenerator = SequentialIDGenerator()
     
     public typealias ID = UInt64
     // TODO: Lifetime: static, dynamic, ephemeral
     
-    /// Graph the object is associated with.
+    /// World the object is associated with.
     ///
-    public internal(set) var graph: Graph?
+    public internal (set) var world: World?
     
 
     /// A set of labels.
     ///
     public internal (set) var labels: LabelSet = []
+   
+    public internal (set) var components: ComponentSet
     
     /// Identifier of the object that is unique within the owning graph.
     ///
@@ -42,7 +45,7 @@ open class Object: Identifiable, CustomStringConvertible {
     ///
     public var id: OID {
         willSet(newID) {
-            precondition(graph == nil)
+            precondition(world == nil)
         }
     }
     
@@ -54,9 +57,15 @@ open class Object: Identifiable, CustomStringConvertible {
     /// assumed to be unique for every object created without explicit ID,
     /// however it is not assumed to be unique with explicitly provided IDs.
     ///
-    public init(id: OID?=nil, labels: LabelSet=[]) {
+    public init(id: OID?=nil, labels: LabelSet=[], components: [any Component]) {
         self.id = id ?? Object.defaultIDGenerator.next()
         self.labels = labels
+        self.components = ComponentSet()
+        self.components.set(components)
+    }
+    
+    public convenience init(id: OID?=nil, labels: LabelSet=[], components: any Component...) {
+        self.init(id: id, labels: labels, components: components)
     }
     
 //    /// List of initial labels for a given graph object. Subclasses might
@@ -87,9 +96,8 @@ open class Object: Identifiable, CustomStringConvertible {
     ///       the graph object. If the label already exists, nothing happens.
     ///
     public func set(label: Label) {
-        self.graph?.willChange(.setLabel(self, label))
+//        self.graph?.willChange(.setLabel(self, label))
         labels.insert(label)
-        self.graph?.didChange(.setLabel(self, label))
     }
     
     /// Unsets object label.
@@ -99,9 +107,8 @@ open class Object: Identifiable, CustomStringConvertible {
     ///       the graph object. If the label is not present, nothing happens.
     ///
     public func unset(label: Label) {
-        self.graph?.willChange(.unsetLabel(self, label))
+//        self.graph?.willChange(.unsetLabel(self, label))
         labels.remove(label)
-        self.graph?.didChange(.unsetLabel(self, label))
     }
    
     /// Notifies the graph observer that an attribute of the graph object is
@@ -125,7 +132,7 @@ open class Object: Identifiable, CustomStringConvertible {
     ///   future.
     ///
     public func willChangeAttribute(_ key: String, value: any ValueProtocol) {
-        self.graph?.willChange(.setAttribute(self, key, value))
+//        self.graph?.willChange(.setAttribute(self, key, value))
     }
     
     open var description: String {

@@ -5,6 +5,7 @@
 //  Created by Stefan Urbanek on 2021/10/20.
 //
 
+
 /// Edge represents a connection between two nodes.
 ///
 /// The edges in the graph have an origin node and a target node associated
@@ -12,20 +13,9 @@
 /// cases. Despite most of the functionality might be using the orientation,
 /// it does not prevent one to treat the edges as non-oriented.
 ///
-open class Edge: Object, PersistableEdge {
+public final class Edge: Object {
+    // FIXME: Add PersistableEdge
     
-    public var persistableTypeName: String { "Edge" }
-    required public convenience init(origin: Node,
-                                     target: Node,
-                                     record: ForeignRecord,
-                                     labels: LabelSet=LabelSet(),
-                                     id: OID?=nil) throws {
-        self.init(origin: origin,
-                  target: target,
-                  labels: labels,
-                  id: id)
-    }
-
     /// Origin node of the edge - a node from which the edge points from.
     ///
     public let origin: Node
@@ -33,10 +23,14 @@ open class Edge: Object, PersistableEdge {
     ///
     public let target: Node
     
-    public required init(origin: Node, target: Node, labels: LabelSet=[], id: OID? = nil) {
+    public required init(origin: Node,
+                         target: Node,
+                         labels: LabelSet=[],
+                         id: OID? = nil,
+                         components: any Component...) {
         self.origin = origin
         self.target = target
-        super.init(id: id, labels: labels)
+        super.init(id: id, labels: labels, components: components)
     }
     
     
@@ -51,13 +45,13 @@ open class Edge: Object, PersistableEdge {
     ///
     /// Subclasses should implement this method.
     ///
-    open func copy(origin: Node? = nil, target: Node? = nil) -> Self {
-        let edge = Self(origin: origin ?? self.origin,
-                        target: target ?? self.target,
-                        labels: self.labels,
-                        id: self.id)
-        return edge
-    }
+//    open func copy(origin: Node? = nil, target: Node? = nil) -> Self {
+//        let edge = Self(origin: origin ?? self.origin,
+//                        target: target ?? self.target,
+//                        labels: self.labels,
+//                        id: self.id)
+//        return edge
+//    }
 }
 extension Edge: Hashable {
     // FIXME: Is this 100% OK?

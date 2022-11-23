@@ -15,7 +15,7 @@
 //            a reason to add functionality here at this moment.
 // -------------------------------------------------------------------------
 
-/// Holon is a mutable structure representing a directed labelled multi-graph.
+/// Graph is a mutable structure representing a directed labelled multi-graph.
 /// The graph is composed of nodes (vertices) and edges (connections between
 /// vertices).
 ///
@@ -52,6 +52,11 @@
 /// edge until the edge is removed from the graph either with
 /// ``Graph/disconnect(edge:)`` or as a by-product of ``Graph/remove(_:)``.
 ///
+/// ## Observing Changes
+///
+/// Changes to the graph and its objects can be observed using
+/// ``GraphObserver``.
+///
 public class Graph: MutableGraphProtocol {
     // Potential generic parameters:
     // class Graph<N,L> where N:Identifiable, L:Hashable, Identifiable
@@ -69,35 +74,22 @@ public class Graph: MutableGraphProtocol {
     /// List of edges in the graph.
     public var edges: [Edge] { Array(_edges.values) }
     
-    /// Object observing graph changes.
-    ///
-    public var observer: GraphObserver?
-
     // MARK: - Initialisation
     
     /// Create an empty graph.
     ///
     /// - Parameters:
     ///
-    ///     - nodes: List of nodes of the new graph. The nodes must not be
-    ///       associated with any other graph
-    ///     - nodes: List of edges of the new graph. The edges must not be
-    ///       associated with any other graph and must be valid.
+    ///     - nodes: List of nodes of the new graph.
+    ///     - nodes: List of edges of the new graph.
     ///
-    /// - Precondition: Provided nodes and edges must not belong to any graph.
     /// - Precondition: Endpoints of the edges must be in the list of provided nodes
     ///
     public init(nodes: [Node] = [], edges: [Edge] = []) {
-        guard nodes.allSatisfy({ $0.graph == nil }) else {
-            preconditionFailure("Nodes must not be associated with any graph")
-        }
+        // TODO: Make sure all nodes and edges belong to the same world
         for node in nodes {
             assert(_nodes[node.id] == nil)
             _nodes[node.id] = node
-        }
-
-        guard edges.allSatisfy({ $0.graph == nil }) else {
-            preconditionFailure("Edges must not be associated with any graph")
         }
 
         guard edges.allSatisfy({ nodes.contains($0.origin) && nodes.contains($0.target) }) else {
@@ -122,7 +114,7 @@ public class Graph: MutableGraphProtocol {
     ///
     ///
     public func contains(node: Node) -> Bool {
-        return node.graph === self && _nodes[node.id] != nil
+        return _nodes[node.id] != nil
     }
     
     /// Check whether the graph contains an edge and whether the node is valid.
@@ -132,7 +124,7 @@ public class Graph: MutableGraphProtocol {
     /// - Note: Edge comparison is based on its identity.
     ///
     public func contains(edge: Edge) -> Bool {
-        return edge.graph === self && _edges[edge.id] != nil
+        return _edges[edge.id] != nil
     }
 
     /// Get a node by ID.
@@ -152,14 +144,11 @@ public class Graph: MutableGraphProtocol {
     }
 
 
-
     // MARK: - Mutation
     
     /// Adds a node to the graph. This method is used to add a newly created
     /// node or to re-associate a node that has been removed. Node ID must be
     /// valid.
-    ///
-    /// For internal use only.
     ///
     /// - Note: A node belongs to one graph only. It can not be shared once
     /// added to a graph.
@@ -168,17 +157,11 @@ public class Graph: MutableGraphProtocol {
     ///
     ///     - node: Node to be added to the graph.
     ///
-    /// - Precondition: Node must not belong to any graph.
     /// - Precondition: Graph must not have a node with the same ID.
     ///
     public func add(_ node: Node) {
-        precondition(node.graph == nil, "Trying to associate already associated node: \(node)")
         precondition(_nodes[node.id] == nil, "The graph already contains a node with id '\(node.id)'.")
 
-        node.graph = self
-
-        let change = GraphChange.addNode(node)
-        
         // Associate the node
         _nodes[node.id] = node
     }
@@ -190,30 +173,24 @@ public class Graph: MutableGraphProtocol {
     ///            were removed in addition to the node requested. (The
     ///            requested node is not included in the returned list)
     ///
-    /// - Note: The caller becomes owner of the returned nodes and edges.
-    ///
-    /// - Precondition: Node must belong to the graph.
-    ///
     /// - Important: If using the Holon or Indirection pattern, removing a node
     ///   might break graph integrity. This is a low-level node removal. To
     ///   remove holon node see ``removeHolon(_:)`` or ``dissolveHolon(_:)``.
     ///
     @discardableResult
     public func remove(_ node: Node) -> [Edge] {
-        precondition(node.graph === self, "Trying to remove a node that does not belong to the graph")
-
         var disconnected: [Edge] = []
         
         // First we remove all the connections
         for edge in edges {
             if edge.origin === node || edge.target === node {
                 disconnected.append(edge)
-                rawDisconnect(edge)
+                _edges[edge.id] = nil
             }
         }
 
         _nodes[node.id] = nil
-        node.graph = nil
+        node.world = nil
 
         return disconnected
     }
@@ -260,16 +237,9 @@ public class Graph: MutableGraphProtocol {
                         to target: Node,
                         labels: LabelSet=[],
                         id: OID?=nil) -> Edge {
-        // TODO: Remove this method in favour of default MutableGraphProtocol implementation
-        precondition(origin.graph === self, "Connecting from an origin from a different graph")
-        precondition(target.graph === self, "Connecting to a target from a different graph")
-        
         let edge = Edge(origin: origin, target: target, labels: labels, id: id)
         
-        let change = GraphChange.addEdge(edge)
-
-        edge.graph = self
-        _edges[edge.id] = edge
+        add(edge)
         
         return edge
     }
@@ -277,48 +247,18 @@ public class Graph: MutableGraphProtocol {
 
     /// Adds a custom-created edge to the graph.
     ///
-    /// This method can be also used to associate previously associated edge
-    /// with the graph. Typical use-case would be an undo command.
-    /// 
-    /// - Note: An edge object belongs to one graph only. It can not be shared
-    /// once added to a graph.
-    ///
     /// - Parameters:
     ///
     ///     - edge: Edge to be added to the graph.
     ///
-    /// - Precondition: Edge must not be associated with any graph.
     /// - Precondition: Graph must not have an edge with the same ID.
     ///
     public func add(_ edge: Edge) {
-        precondition(edge.graph == nil,
-                     "Trying to associate already associated edge: \(edge)")
         precondition(_edges[edge.id] == nil, "The graph already contains an edge with id '\(edge.id)'.")
-        precondition(contains(node: edge.origin), "Origin of an edge does not belong to the graph")
-        precondition(contains(node: edge.target), "Target of an edge does not belong to the graph")
 
-        // Register the object
-        edge.graph = self
         _edges[edge.id] = edge
     }
 
-    /// Removes a specific edge from the graph. This method is shared for
-    /// consistency between remove(node:) and disconnect(edge:).
-    ///
-    /// - Parameters:
-    ///
-    ///     - edge: Edge to be removed.
-    ///
-    func rawDisconnect(_ edge: Edge) {
-        // NOTE: Here we know that the edge's graph is us, we do not have to
-        //       check it. Since IDs are unique, we can just use the ID to remove
-        //       the node.
-        //
-        _edges[edge.id] = nil
-        edge.graph = nil
-    }
-    
-    
     /// Removes a specific edge from the graph. Edge must exist in the graph.
     ///
     /// - Parameters:
@@ -326,154 +266,25 @@ public class Graph: MutableGraphProtocol {
     ///     - edge: Edge to be removed.
     ///
     public func remove(_ edge: Edge) {
-        precondition(edge.graph === self,
-                     "Trying to disconnect an unassociated edge or an edge from a different graph")
-
-        let change = GraphChange.removeEdge(edge)
-        rawDisconnect(edge)
-    }
-   
-    public func removeAll() {
-        for edge in edges {
-            edge.graph = nil
-        }
-        _edges.removeAll()
-        for node in nodes {
-            node.graph = nil
-        }
-        _nodes.removeAll()
+        _edges[edge.id] = nil
     }
     
-    // MARK: - Advanced Query
-    
-    /// Get a list of outgoing edges from a node.
-    ///
-    /// - Parameters:
-    ///     - origin: Node from which the edges originate - node is origin
-    ///     node of the edge.
-    ///
-    /// - Returns: List of edges.
-    ///
-    /// - Complexity: O(n). All edges are traversed.
-    ///
-    /// - Note: If you want to get both outgoing and incoming edges of a node
-    ///   then use ``neighbours(_:)``. Using ``outgoing(_:)`` + ``incoming(_:)`` might
-    ///   result in duplicates for edges that are loops to and from the same
-    ///   node.
-    ///
-    public func outgoing(_ origin: Node) -> [Edge] {
-        precondition(origin.graph === self,
-                     "Trying to get outgoing edges from a node that is not associated with the graph.")
-
-        let result: [Edge]
-        
-        result = self.edges.filter {
-            $0.origin === origin
-        }
-
-        return result
-    }
-    
-    
-    /// Get a list of edges incoming to a node.
-    ///
-    /// - Parameters:
-    ///     - target: Node to which the edges are incoming – node is a target
-    ///       node of the edge.
-    ///
-    /// - Returns: List of edges.
-    ///
-    /// - Complexity: O(n). All edges are traversed.
-    ///
-    /// - Note: If you want to get both outgoing and incoming edges of a node
-    ///   then use ``neighbours(_:)``. Using ``outgoing(_:)`` + ``incoming(_:)`` might
-    ///   result in duplicates for edges that are loops to and from the same
-    ///   node.
-    ///
-    public func incoming(_ target: Node) -> [Edge] {
-        precondition(target.graph === self,
-                     "Trying to get incoming edges from a node that is not associated with the graph.")
-
-        let result: [Edge]
-        
-        result = self.edges.filter {
-            $0.target === target
-        }
-
-        return result
-    }
-    
-    
-    /// Get a list of edges that are related to the neighbours of the node. That
-    /// is, list of edges where the node is either an origin or a target.
-    ///
-    /// - Returns: List of edges.
-    ///
-    /// - Complexity: O(n). All edges are traversed.
-    ///
-    public func neighbours(_ node: Node) -> [Edge] {
-        precondition(node.graph === self,
-                     "Trying to get neighbour edges from a node that is not associated with the graph.")
-
-        let result: [Edge]
-        
-        result = self.edges.filter {
-            $0.target === node || $0.origin === node
-        }
-
-        return result
-    }
-
-    
-    /// Determines whether the node has no outgoing edges. That is, if there
-    /// are no edges which have the node as origin.
-    ///
-    /// - Returns: `true` if there are no outgoing edges from the node.
-    /// - Complexity: O(n). All edges are traversed.
-    ///
-    public func isSink(_ node: Node) -> Bool {
-        precondition(node.graph === self, "Node is not associated with this graph.")
-        return edges.contains { $0.origin === node }
-    }
-    
-    /// Determines whether the node has no incoming edges. That is, if there
-    /// are no edges which have the node as target.
-    ///
-    /// - Returns: `true` if there are no incoming edges to the node.
-    /// - Complexity: O(n). All edges are traversed.
-    ///
-    public func isSource(_ node: Node) -> Bool {
-        precondition(node.graph === self, "Node is not associated with this graph.")
-        return edges.contains { $0.target === node }
-    }
-    
-    /// Determines whether the `node` is an orphan, that is whether the node has
-    /// no incoming neither outgoing edges.
-    ///
-    /// - Returns: `true` if there are no edges referring to the node.
-    /// - Complexity: O(n). All edges are traversed.
-    ///
-    public func isOrphan(_ node: Node) -> Bool {
-        precondition(node.graph === self, "Node is not associated with this graph.")
-        return edges.contains { $0.origin === node || $0.target === node }
-    }
-
     public var description: String {
         "Graph(nodes: \(nodes.count), edges: \(edges.count))"
     }
     
     /// Create a copy of the graph
+    ///
     public func copy() -> Graph {
+        // FIXME: Remove this
         let graph = Graph()
         for node in nodes {
-            graph.add(node.copy())
+            graph.add(node)
         }
         // We can use IDs because they are guaranteed to be unique within a
         // graph
         for edge in edges {
-            let copy = edge.copy(origin: graph.node(edge.origin.id)!,
-                                 target: graph.node(edge.target.id)!)
-            graph.add(copy)
+            graph.add(edge)
         }
         return graph
     }

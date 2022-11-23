@@ -17,7 +17,7 @@ public protocol Copying {
 }
 /// Object representing a node of a graph.
 ///
-open class Node: Object, Copying {
+public final class Node: Object {
     /// Type denoting a role of a node. Some nodes can have special meaning and
     /// treatment at the system level depending on their role. The roles can be:
     ///
@@ -49,53 +49,31 @@ open class Node: Object, Copying {
 
     /// Create a node with a special role.
     /// 
-    public init(id: OID?=nil, labels: LabelSet=LabelSet(), role: Role = .`default`) {
+    public init(id: OID?=nil,
+                labels: LabelSet=LabelSet(),
+                role: Role = .`default`,
+                _ components: any Component...) {
         // TODO: Reconsider existence of this initializer
         // – we are just assigning some system labels, which can be removed
         //   later anyway.
         if let label = role.label {
-            super.init(id: id, labels: labels.union([label]))
-
+            super.init(id: id,
+                       labels: labels.union([label]),
+                       components: components)
         }
         else {
-            super.init(id: id, labels: labels)
+            super.init(id: id,
+                       labels: labels,
+                       components: components)
         }
     }
     
-
-    /// Edges outgoing from the node, that is edges where the node is the
-    /// origin.
-    ///
-    /// It is empty when the node is not associated with a graph.
-    ///
-    /// - Note: If you want to get both outgoing and incoming edges of a node
-    ///   then use ``neighbours``. Using ``outgoing`` + ``incoming`` might
-    ///   result in duplicates for edges that are loops to and from the same
-    ///   node.
-    ///
-    public var outgoing: [Edge] {
-        return graph!.outgoing(self)
-    }
-    
-    /// Edges incoming to the node, that is edges where the node is the target.
-    ///
-    /// It is empty when the node is not associated with a graph.
-    ///
-    /// - Note: If you want to get both outgoing and incoming edges of a node
-    ///   then use ``neighbours``. Using ``outgoing`` + ``incoming`` might
-    ///   result in duplicates for edges that are loops to and from the same
-    ///   node.
-    ///
-    public var incoming: [Edge] {
-        return graph!.incoming(self)
-    }
-        
     /// Creates an unassociated copy of the node.
     ///
-    open func copy() -> Self {
-        // FIXME: This is weird required casting
-        return Node(id: id, labels: labels) as! Self
-    }
+//    open func copy() -> Self {
+//        // FIXME: This is weird required casting
+//        return Node(id: id, labels: labels) as! Self
+//    }
 }
 
 extension Node: Hashable {

@@ -2,16 +2,16 @@ import XCTest
 @testable import Holon
 
 final class HolonTests: XCTestCase {
-    let graph = Graph()
+    let world = World()
     
     func testGetHolons() throws {
         let holon = Node(role: .holon)
-        graph.add(holon)
+        world.add(holon)
         
-        XCTAssertEqual(graph.topLevelHolons.count, 1)
-        XCTAssertEqual(graph.allHolons.count, 1)
+        XCTAssertEqual(world.graph.topLevelHolons.count, 1)
+        XCTAssertEqual(world.graph.allHolons.count, 1)
         
-        if let first = graph.topLevelHolons.first {
+        if let first = world.graph.topLevelHolons.first {
             XCTAssertIdentical(first, holon)
         }
         else {
@@ -23,13 +23,13 @@ final class HolonTests: XCTestCase {
         let outer = Node(role: .holon)
         let inner = Node(role: .holon)
         
-        graph.add(outer)
+        world.add(outer)
         outer.add(inner)
         
-        XCTAssertEqual(graph.allHolons.count, 2)
+        XCTAssertEqual(world.graph.allHolons.count, 2)
         
-        XCTAssertEqual(graph.topLevelHolons.count, 1)
-        if let first = graph.topLevelHolons.first {
+        XCTAssertEqual(world.graph.topLevelHolons.count, 1)
+        if let first = world.graph.topLevelHolons.first {
             XCTAssertIdentical(first, outer)
         }
         else {
@@ -54,23 +54,23 @@ final class HolonTests: XCTestCase {
         let outerNode = Node()
         let innerNode = Node()
         
-        graph.add(outer)
+        world.add(outer)
         outer.add(inner)
         outer.add(outerNode)
         inner.add(innerNode)
         
-        let removed = graph.removeHolon(outer)
+        let removed = world.graph.removeHolon(outer)
         
         XCTAssertEqual(removed.edges.count, 3)
         XCTAssertEqual(removed.nodes.count, 3)
         
-        XCTAssertNil(outer.graph)
+        XCTAssertNil(outer.world)
         XCTAssertNil(outer.holon)
-        XCTAssertNil(inner.graph)
+        XCTAssertNil(inner.world)
         XCTAssertNil(inner.holon)
-        XCTAssertNil(outerNode.graph)
+        XCTAssertNil(outerNode.world)
         XCTAssertNil(outerNode.holon)
-        XCTAssertNil(innerNode.graph)
+        XCTAssertNil(innerNode.world)
         XCTAssertNil(innerNode.holon)
     }
     
@@ -86,7 +86,7 @@ final class HolonTests: XCTestCase {
         let outerNode = Node()
         let innerNode = Node()
 
-        graph.add(outer)
+        world.add(outer)
         outer.add(inner)
         outer.add(outerNode)
         inner.add(innerNode)
@@ -95,20 +95,20 @@ final class HolonTests: XCTestCase {
         XCTAssertIdentical(innerNode.holon, inner)
         XCTAssertIdentical(outerNode.holon, outer)
 
-        let (removed, created) = graph.dissolveHolon(outer)
+        let (removed, created) = world.graph.dissolveHolon(outer)
         XCTAssertEqual(removed.count, 0)
         XCTAssertEqual(created.count, 0)
 
-        XCTAssertNil(outer.graph)
+        XCTAssertNil(outer.world)
         XCTAssertNil(outer.holon)
 
-        XCTAssertIdentical(outerNode.graph, graph)
+        XCTAssertIdentical(outerNode.world, world)
         XCTAssertNil(outer.holon)
 
-        XCTAssertIdentical(inner.graph, graph)
+        XCTAssertIdentical(inner.world, world)
         XCTAssertNil(inner.holon)
 
-        XCTAssertIdentical(innerNode.graph, graph)
+        XCTAssertIdentical(innerNode.world, world)
         XCTAssertIdentical(innerNode.holon, inner)
     }
     
@@ -117,7 +117,7 @@ final class HolonTests: XCTestCase {
         let inner = Node(role: .holon)
         let node = Node()
         
-        graph.add(outer)
+        world.add(outer)
         outer.add(inner)
         inner.add(node)
         

@@ -13,18 +13,18 @@ extension Node {
     /// Edge between the node and holon that owns the node.
     ///
     public var holonEdge: Edge? {
-        if graph == nil {
+        if world == nil {
             return nil
         }
         else {
-            return outgoing.first { $0.isHolonEdge }
+            return world!.outgoing(self).first { $0.isHolonEdge }
         }
     }
     
     /// Holon the node is associated with.
     ///
     public var holon: Node? {
-        if graph == nil {
+        if world == nil {
             return nil
         }
         else {
@@ -54,7 +54,7 @@ extension Node: HolonProtocol, MutableGraphProtocol {
     /// List of nodes that belong to the holon directly. The list excludes all
     /// nodes that belong to the children holons.
     ///
-    public var nodes: [Node] { graph!.nodes.filter { $0.holon === self } }
+    public var nodes: [Node] { world!.nodes.filter { $0.holon === self } }
 
     /// Get all edges that belong to the holon.
     ///
@@ -63,8 +63,8 @@ extension Node: HolonProtocol, MutableGraphProtocol {
     /// of the holon and a child or a parent holon are not included.
     ///
     public var edges: [Edge] {
-        graph!.edges.filter {
-            $0.graph === self.graph
+        world!.edges.filter {
+            $0.world === self.world
             && $0.origin.holon === self
             && $0.target.holon === self
         }
@@ -73,9 +73,8 @@ extension Node: HolonProtocol, MutableGraphProtocol {
     /// List of holons that are direct children of this holon.
     ///
     public var childHolons: [Node] {
-        // FIXME: This is wrong, remove
-        // TODO: Rename to child holons
-        incoming.filter { $0.isHolonEdge }
+        // FIXME: This is wrong, remove (or is it?)
+        world!.incoming(self).filter { $0.isHolonEdge }
             .map { $0.origin }
     }
     
@@ -97,7 +96,7 @@ extension Node: HolonProtocol, MutableGraphProtocol {
     ///   unassociated nodes to be added to the holon.
     ///
     public func add(_ node: Node) {
-        precondition(graph != nil, "Trying to add a node to an unassociated holon")
+        precondition(world != nil, "Trying to add a node to an unassociated holon")
         // FIXME: Re-add the preconditions
         //        if let port = node as? Proxy {
 ////            precondition(port.representedNode.graph === self.graph,
@@ -108,8 +107,9 @@ extension Node: HolonProtocol, MutableGraphProtocol {
 //                         "Proxy's represented node must belong to the same holon or be a port of a a child holon")
 //        }
 //
-        graph!.add(node)
-        graph!.connect(node: node, holon: self)
+        world!.add(node)
+        // FIXME: This is a workaround after addition of World
+        world!.graph.connect(node: node, holon: self)
     }
     
     /// Remove a node from the holon and from the owning graph.
@@ -119,9 +119,9 @@ extension Node: HolonProtocol, MutableGraphProtocol {
     /// - Precondition: Node must belong to the holon.
     ///
     public func remove(_ node: Node) -> [Edge] {
-        precondition(graph != nil, "Trying to remove a node from an unassociated holon")
+        precondition(world != nil, "Trying to remove a node from an unassociated holon")
         precondition(node.holon === self, "Trying to remove a node of another holon")
-        return graph!.remove(node)
+        return world!.remove(node)
     }
     
     /// Adds an edge to the holon. Both endpoints of the edge must belong to the
@@ -135,7 +135,7 @@ extension Node: HolonProtocol, MutableGraphProtocol {
     public func add(_ edge: Edge) {
         precondition(edge.origin.holon === self, "Trying to connect a node (as origin) that belongs to another holon")
         precondition(edge.target.holon === self, "Trying to connect a node (as target) that belongs to another holon")
-        return graph!.add(edge)
+        return world!.add(edge)
     }
     
     /// Disconnects an edge.
@@ -147,6 +147,6 @@ extension Node: HolonProtocol, MutableGraphProtocol {
     public func remove(_ edge: Edge) {
         precondition(edge.origin.holon === self || edge.target.holon === self,
                      "Trying to disconnect an edge that does not belong to the holon, neither crosses its boundary")
-        graph!.remove(edge)
+        world!.remove(edge)
     }
 }

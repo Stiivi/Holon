@@ -18,7 +18,7 @@ extension Node {
     /// Representation edge is an outgoing edge from the proxy node
     /// which has a label ``IndirectionLabel/Subject``.
     ///
-    public var subjectEdge: Edge? { outgoing.first { $0.isSubject } }
+    public var subjectEdge: Edge? { world!.outgoing(self).first { $0.isSubject } }
     
     /// A node that the port represents. This is a direct subject, not the
     /// real subject if the subject edge is indirect.

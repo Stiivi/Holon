@@ -117,14 +117,14 @@ public enum LoadError: Error {
 
 // TODO: Rename to "ExternalGraphContext" or exported, externalized, inout, ... something like that
 public class PersistableGraphContext {
-    public let idGenerator: UniqueIDGenerator
+    public let idGenerator: IdentityGenerator
 
     public let nodeTypes: [String:PersistableNode.Type]
     public let defaultNodeType: PersistableNode.Type?
     public let edgeTypes: [String:PersistableEdge.Type]
     public let defaultEdgeType: PersistableEdge.Type?
     
-    public init(idGenerator: UniqueIDGenerator? = nil,
+    public init(idGenerator: IdentityGenerator? = nil,
          nodeTypes: [String:PersistableNode.Type] = [:],
          defaultNodeType: PersistableNode.Type? = nil,
          edgeTypes: [String:PersistableEdge.Type] = [:],

@@ -52,7 +52,7 @@ public class EdgeConstraint: Constraint {
     ///
     public func check(_ graph: Graph) -> (nodes: [Node], edges: [Edge]) {
         let matched = graph.edges.filter { match.match($0) }
-        let violating = requirement.check(matched)
+        let violating = requirement.check(graph: graph, edges: matched)
         return (nodes: [], edges: violating)
     }
 }
@@ -65,7 +65,7 @@ public protocol EdgeConstraintRequirement {
     ///
     /// - Returns: List of graph objects that cause constraint violation.
     ///
-    func check(_ edges: [Edge]) -> [Edge]
+    func check(graph: Graph, edges: [Edge]) -> [Edge]
 }
 
 /// Requirement that the edge origin, edge target and the edge itself matches
@@ -107,7 +107,7 @@ public class EdgeLabelsRequirement: EdgeConstraintRequirement {
         self.edgeLabels = edge
     }
     
-    public func check(_ edges: [Edge]) -> [Edge] {
+    public func check(graph: Graph, edges: [Edge]) -> [Edge] {
         var violations: [Edge] = []
         
         for edge in edges {

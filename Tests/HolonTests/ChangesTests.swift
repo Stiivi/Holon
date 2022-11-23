@@ -8,10 +8,10 @@
 import XCTest
 @testable import Holon
 
-class Thing: Node {
+struct Thing: Component, KeyedAttributes {
     var name: String {
         willSet {
-            self.graph?.willChange(.setAttribute(self, "name", name))
+//            self.graph?.willChange(.setAttribute(self, "name", name))
         }
         
     }
@@ -20,21 +20,21 @@ class Thing: Node {
         self.name = name
     }
     
-    override var attributeKeys: [AttributeKey] {
+    var attributeKeys: [AttributeKey] {
         ["name"]
     }
     
-    override func attribute(forKey key: String) -> (any AttributeValue)? {
+    func attribute(forKey key: String) -> (any AttributeValue)? {
         switch key {
         case "name": return name
         default: return nil
         }
     }
     
-    public override func setAttribute(value: AttributeValue, forKey key: AttributeKey) {
+    mutating func setAttribute(value: any AttributeValue, forKey key: AttributeKey) {
         switch key {
         case "name": self.name = value.stringValue()!
-        default: super.setAttribute(value: value, forKey: key)
+        default: fatalError("Unknown attribute: \(key) in \(type(of:self))")
         }
     }
 }
@@ -126,20 +126,21 @@ final class ChangesTests: XCTestCase {
 
     }
     func testSetAttributeChange() throws {
-        let node = Thing(name: "Alice")
-        graph.add(node)
-        
-        let change: GraphChange = .setAttribute(node, "name", "Bob")
-        
-        let revert = graph.applyChange(change)
-        
-        XCTAssertEqual(node.name, "Bob")
-        XCTAssertEqual(revert, [.setAttribute(node, "name", "Alice")])
-
-        let revert2 = graph.applyChange(revert[0])
-        XCTAssertEqual(node.name, "Alice")
-        XCTAssertEqual(revert2, [.setAttribute(node, "name", "Bob")])
-
+        throw XCTSkip("Wrong test: Setting attributes should now be done through world")
+//        let node = Thing(name: "Alice")
+//        graph.add(node)
+//        
+//        let change: GraphChange = .setAttribute(node, "name", "Bob")
+//        
+//        let revert = graph.applyChange(change)
+//        
+//        XCTAssertEqual(node.name, "Bob")
+//        XCTAssertEqual(revert, [.setAttribute(node, "name", "Alice")])
+//
+//        let revert2 = graph.applyChange(revert[0])
+//        XCTAssertEqual(node.name, "Alice")
+//        XCTAssertEqual(revert2, [.setAttribute(node, "name", "Bob")])
+//
     }
 
 }

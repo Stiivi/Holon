@@ -76,4 +76,61 @@ extension Graph {
                        labels: labels.union(additionalLabels),
                        id: id)
     }
+    
+    /// Get a path from a proxy node to the real subject. Real subject is a
+    /// node that is referenced by a direct subject edge.
+    ///
+    /// The function follows all indirect edges from the provided proxy node
+    /// until it finds a subject edge that direct.
+    ///
+    /// - Precondition: Node must be a proxy and indirection integrity must
+    ///   be assured.
+    ///
+    public func realSubjectPath(_ proxy: Node) -> Path {
+        // FIXME: Check for loops
+        precondition(proxy.isProxy)
+        
+        var current = proxy
+        let path = Path()
+        
+        while true {
+            guard let edge = subjectEdge(current) else {
+                break
+            }
+            
+            // FIXME: Deal with this
+            if edge.hasIndirectTarget {
+                current = edge.target
+                assert(!path.joins(current), "Path must not contain a loop")
+            }
+            path.append(edge)
+            if !edge.hasIndirectTarget {
+                break
+            }
+            
+        }
+        
+        return path
+    }
+
+    /// Edge that is a representation of the proxy node.
+    ///
+    /// Representation edge is an outgoing edge from the proxy node
+    /// which has a label ``IndirectionLabel/Subject``.
+    ///
+    public func subjectEdge(_ proxy: Node) -> Edge? {
+        return self.outgoing(proxy).first { $0.isSubject }
+    }
+    /// A node that the port represents. This is a direct subject, not the
+    /// real subject if the subject edge is indirect.
+    ///
+    /// To get the real subject use ``realSubjectPath()`` to get the
+    /// path to the real subject traversing indirect subject edges.
+    /// Target of the last edge, which can be retrieved using ``Path/target``,
+    /// is the real subject.
+    ///
+    public func subject(_ proxy: Node) -> Node? {
+        return subjectEdge(proxy)?.target
+    }
+
 }

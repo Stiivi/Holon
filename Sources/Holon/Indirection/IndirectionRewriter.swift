@@ -158,7 +158,7 @@ public class IndirectionRewriter {
                 let proxy = edge.origin
                 assert(proxy.isProxy, "Indirect origin must be a proxy")
 
-                originPath = proxy.realSubjectPath()
+                originPath = graph.realSubjectPath(proxy)
                 labels.remove(IndirectionLabel.IndirectOrigin)
             }
             else {
@@ -171,7 +171,7 @@ public class IndirectionRewriter {
                 let proxy = edge.target
                 assert(proxy.isProxy, "Indirect target must be a proxy")
 
-                targetPath = proxy.realSubjectPath()
+                targetPath = graph.realSubjectPath(proxy)
                 labels.remove(IndirectionLabel.IndirectTarget)
             }
             else {

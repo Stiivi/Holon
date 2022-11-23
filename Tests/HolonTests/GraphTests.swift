@@ -171,7 +171,7 @@ final class PathTests: XCTestCase {
         let edge3 = graph.connect(from: node3, to: node3)
         let edge4 = graph.connect(from: node3, to: node3)
 
-        XCTAssertFalse(Path.isValid([]))
+        XCTAssertTrue(Path.isValid([]))
         XCTAssertTrue(Path.isValid([edge1]))
         
         XCTAssertTrue(Path.isValid([edge1, edge2, edge3, edge4]))

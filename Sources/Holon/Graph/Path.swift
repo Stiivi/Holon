@@ -15,11 +15,9 @@ public class Path: Equatable {
     
     /// Creates a path from a list of edges.
     ///
-    /// - Precondition: Edges must be not empty
     /// - Precondition: Path must be valid. See ``Path/isValid(_:)``.
     ///
-    public init(_ edges: [Edge]) {
-        precondition(edges.count > 0, "Path must have at least one edge")
+    public init(_ edges: [Edge] = []) {
         precondition(Path.isValid(edges), "Path of edges is invalid: \(edges)")
         self.edges = edges
     }
@@ -28,9 +26,11 @@ public class Path: Equatable {
     /// valid if the target of an edge is origin of the edge's successor in the
     /// sequence of edges.
     ///
+    /// Empty path is a valid path.
+    ///
     public static func isValid(_ edges: [Edge]) -> Bool {
         guard edges.count > 0 else {
-            return false
+            return true
         }
         
         var iterator = edges.makeIterator()
@@ -46,6 +46,17 @@ public class Path: Equatable {
         return true
     }
     
+    /// Appends an edge to the path.
+    ///
+    /// - Precondition: Edge's origin must be path's last target.
+    ///
+    public func append(_ edge: Edge) {
+        if let last = edges.last {
+            precondition(last.target === edge.origin)
+        }
+        edges.append(edge)
+    }
+    
     /// Origin of the path – origin of the very first item in the path.
     public var origin: Node { edges.first!.origin }
 
@@ -55,9 +66,17 @@ public class Path: Equatable {
     public static func ==(lhs: Path, rhs: Path) -> Bool {
         return lhs.edges == rhs.edges
     }
+    
+    /// Returns true if the path traverses through `node`.
+    ///
+    public func joins(_ node: Node) -> Bool {
+        return edges.contains {
+            $0.origin === node || $0.target === node
+        }
+    }
 }
 
-extension Path: MutableCollection {
+extension Path: Collection {
     public typealias Index = Array<Edge>.Index
     public typealias Element = Edge
     
@@ -70,9 +89,6 @@ extension Path: MutableCollection {
     public subscript(index: Index) -> Element {
         get {
             return edges[index]
-        }
-        set(item) {
-            return edges[index] = item
         }
     }
 

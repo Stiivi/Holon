@@ -5,6 +5,23 @@
 //  Created by Stefan Urbanek on 30/09/2022.
 //
 
+// FIXME: Add "ForeignContext"/PersistenceContext
+
+public struct _Version {
+    let major: Int
+    let minor: Int
+    let subminor: Int
+}
+
+public struct _PersistenceContext {
+    let version: Version
+    // TODO: physical vs. logical layer version
+}
+
+public protocol PersistableComponent: Component {
+    var persistableTypeName: String { get }
+    init(record: ForeignRecord) throws
+}
 
 public protocol PersistableObject: Object, KeyedAttributes {
     /// Name of the type to be stored. The type name is then used to get a

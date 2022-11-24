@@ -9,6 +9,8 @@ import XCTest
 @testable import Holon
 
 final class PredicateTests: XCTestCase {
+    let graph = Graph()
+    
     func testLabelPredicate() throws {
         let node0 = Node()
         let node1 = Node(labels:["parsley"])
@@ -20,23 +22,23 @@ final class PredicateTests: XCTestCase {
         let nonePredicate = LabelPredicate(none: "rosemary", "thyme")
         let anyPredicate = LabelPredicate(any: "sage", "thyme")
 
-        XCTAssertFalse(allPredicate.match(node0))
-        XCTAssertFalse(allPredicate.match(node1))
-        XCTAssertTrue(allPredicate.match(node2))
-        XCTAssertTrue(allPredicate.match(node3))
-        XCTAssertFalse(allPredicate.match(node4))
+        XCTAssertFalse(allPredicate.match(graph: graph, node: node0))
+        XCTAssertFalse(allPredicate.match(graph: graph, node: node1))
+        XCTAssertTrue(allPredicate.match(graph: graph, node: node2))
+        XCTAssertTrue(allPredicate.match(graph: graph, node: node3))
+        XCTAssertFalse(allPredicate.match(graph: graph, node: node4))
 
-        XCTAssertTrue(nonePredicate.match(node0))
-        XCTAssertTrue(nonePredicate.match(node1))
-        XCTAssertTrue(nonePredicate.match(node2))
-        XCTAssertFalse(nonePredicate.match(node3))
-        XCTAssertFalse(nonePredicate.match(node4))
+        XCTAssertTrue(nonePredicate.match(graph: graph, node: node0))
+        XCTAssertTrue(nonePredicate.match(graph: graph, node: node1))
+        XCTAssertTrue(nonePredicate.match(graph: graph, node: node2))
+        XCTAssertFalse(nonePredicate.match(graph: graph, node: node3))
+        XCTAssertFalse(nonePredicate.match(graph: graph, node: node4))
 
-        XCTAssertFalse(anyPredicate.match(node0))
-        XCTAssertFalse(anyPredicate.match(node1))
-        XCTAssertTrue(anyPredicate.match(node2))
-        XCTAssertTrue(anyPredicate.match(node3))
-        XCTAssertTrue(anyPredicate.match(node4))
+        XCTAssertFalse(anyPredicate.match(graph: graph, node: node0))
+        XCTAssertFalse(anyPredicate.match(graph: graph, node: node1))
+        XCTAssertTrue(anyPredicate.match(graph: graph, node: node2))
+        XCTAssertTrue(anyPredicate.match(graph: graph, node: node3))
+        XCTAssertTrue(anyPredicate.match(graph: graph, node: node4))
     }
     
     func testNegationPredicate() throws {
@@ -44,8 +46,8 @@ final class PredicateTests: XCTestCase {
         let notParsley = NegationPredicate(LabelPredicate(all: "parsley"))
         let notSage = NegationPredicate(LabelPredicate(all: "sage"))
 
-        XCTAssertFalse(notParsley.match(node))
-        XCTAssertTrue(notSage.match(node))
+        XCTAssertFalse(notParsley.match(graph: graph, object: node))
+        XCTAssertTrue(notSage.match(graph: graph, object: node))
     }
     
     func testCompoundPredicate() throws {
@@ -59,15 +61,15 @@ final class PredicateTests: XCTestCase {
         let parsleyOrSageP = LabelPredicate(all: "parsley")
                                 .or(LabelPredicate(all: "sage"))
 
-        XCTAssertFalse(parsleyAndSageP.match(node1))
-        XCTAssertTrue(parsleyAndSageP.match(node2))
-        XCTAssertTrue(parsleyAndSageP.match(node3))
-        XCTAssertFalse(parsleyAndSageP.match(node4))
+        XCTAssertFalse(parsleyAndSageP.match(graph: graph, object: node1))
+        XCTAssertTrue(parsleyAndSageP.match(graph: graph, object: node2))
+        XCTAssertTrue(parsleyAndSageP.match(graph: graph, object: node3))
+        XCTAssertFalse(parsleyAndSageP.match(graph: graph, object: node4))
 
-        XCTAssertTrue(parsleyOrSageP.match(node1))
-        XCTAssertTrue(parsleyOrSageP.match(node2))
-        XCTAssertTrue(parsleyOrSageP.match(node3))
-        XCTAssertFalse(parsleyOrSageP.match(node4))
+        XCTAssertTrue(parsleyOrSageP.match(graph: graph, object: node1))
+        XCTAssertTrue(parsleyOrSageP.match(graph: graph, object: node2))
+        XCTAssertTrue(parsleyOrSageP.match(graph: graph, object: node3))
+        XCTAssertFalse(parsleyOrSageP.match(graph: graph, object: node4))
     }
 }
 
@@ -84,20 +86,20 @@ final class EdgePredicateTests: XCTestCase {
         let edge21 = graph.connect(from: node2, to: node1, labels: ["out"])
 
         let p1 = EdgeObjectPredicate(origin: LabelPredicate(all: "this"))
-        XCTAssertTrue(p1.match(edge12))
-        XCTAssertFalse(p1.match(edge21))
+        XCTAssertTrue(p1.match(graph: graph, edge: edge12))
+        XCTAssertFalse(p1.match(graph: graph, edge: edge21))
 
         let p2 = EdgeObjectPredicate(target: LabelPredicate(all: "this"))
-        XCTAssertFalse(p2.match(edge12))
-        XCTAssertTrue(p2.match(edge21))
+        XCTAssertFalse(p2.match(graph: graph, edge: edge12))
+        XCTAssertTrue(p2.match(graph: graph, edge: edge21))
 
         let p3 = EdgeObjectPredicate(edge: LabelPredicate(all: "in"))
-        XCTAssertTrue(p3.match(edge12))
-        XCTAssertFalse(p3.match(edge21))
+        XCTAssertTrue(p3.match(graph: graph, edge: edge12))
+        XCTAssertFalse(p3.match(graph: graph, edge: edge21))
 
         let p4 = EdgeObjectPredicate(edge: LabelPredicate(all: "out"))
-        XCTAssertFalse(p4.match(edge12))
-        XCTAssertTrue(p4.match(edge21))
+        XCTAssertFalse(p4.match(graph: graph, edge: edge12))
+        XCTAssertTrue(p4.match(graph: graph, edge: edge21))
 
         let edge12empty = graph.connect(from: node1, to: node2, labels: [])
         let edge21empty = graph.connect(from: node2, to: node1, labels: [])
@@ -106,20 +108,20 @@ final class EdgePredicateTests: XCTestCase {
             origin: LabelPredicate(all: "this"),
             target: LabelPredicate(all: "that"))
 
-        XCTAssertTrue(p5.match(edge12))
-        XCTAssertTrue(p5.match(edge12empty))
-        XCTAssertFalse(p5.match(edge21))
-        XCTAssertFalse(p5.match(edge21empty))
+        XCTAssertTrue(p5.match(graph: graph, edge: edge12))
+        XCTAssertTrue(p5.match(graph: graph, edge: edge12empty))
+        XCTAssertFalse(p5.match(graph: graph, edge: edge21))
+        XCTAssertFalse(p5.match(graph: graph, edge: edge21empty))
 
         let p6 = EdgeObjectPredicate(
             origin: LabelPredicate(all: "this"),
             target: LabelPredicate(all: "that"),
             edge: LabelPredicate(all: "in"))
 
-        XCTAssertTrue(p6.match(edge12))
-        XCTAssertFalse(p6.match(edge12empty))
-        XCTAssertFalse(p6.match(edge21))
-        XCTAssertFalse(p6.match(edge21empty))
+        XCTAssertTrue(p6.match(graph: graph, edge: edge12))
+        XCTAssertFalse(p6.match(graph: graph, edge: edge12empty))
+        XCTAssertFalse(p6.match(graph: graph, edge: edge21))
+        XCTAssertFalse(p6.match(graph: graph, edge: edge21empty))
 
     }
 }

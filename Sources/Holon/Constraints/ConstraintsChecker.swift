@@ -85,7 +85,7 @@ public class ConstraintChecker {
     /// Check a graph for constraints and returns a list of constraint
     /// violations.
     ///
-    public func check(graph: Graph) -> [ConstraintViolation] {
+    public func check(graph: GraphProtocol) -> [ConstraintViolation] {
         var violations: [ConstraintViolation] = []
         
         for constraint in constraints {

@@ -39,18 +39,18 @@ public protocol Constraint {
     /// A function that checks whether the graph satisfies the constraint.
     /// Returns a list of nodes and edges that violate the constraint.
     ///
-    func check(_ graph: Graph) -> (nodes: [Node], edges: [Edge])
+    func check(_ graph: GraphProtocol) -> (nodes: [Node], edges: [Edge])
 }
 
 public protocol ObjectConstraintRequirement: EdgeConstraintRequirement, NodeConstraintRequirement {
-    func check(graph: Graph, objects: [Object]) -> [Object]
+    func check(graph: GraphProtocol, objects: [Object]) -> [Object]
 }
 
 extension ObjectConstraintRequirement {
-    public func check(graph: Graph, edges: [Edge]) -> [Edge] {
+    public func check(graph: GraphProtocol, edges: [Edge]) -> [Edge] {
         return check(graph: graph, objects: edges).map { $0 as! Edge }
     }
-    public func check(graph: Graph, nodes: [Node]) -> [Node] {
+    public func check(graph: GraphProtocol, nodes: [Node]) -> [Node] {
         return check(graph: graph, objects: nodes).map { $0 as! Node }
     }
 }
@@ -68,7 +68,7 @@ public class RejectAll: ObjectConstraintRequirement {
     /// Returns all objects it is provided – meaning, that all of them are
     /// violating the constraint.
     ///
-    public func check(graph: Graph, objects: [Object]) -> [Object] {
+    public func check(graph: GraphProtocol, objects: [Object]) -> [Object] {
         /// We reject whatever comes in
         return objects
     }
@@ -87,7 +87,7 @@ public class AcceptAll: ObjectConstraintRequirement {
     /// Returns an empty list, meaning that none of the objects are violating
     /// the constraint.
     ///
-    public func check(graph: Graph, objects: [Object]) -> [Object] {
+    public func check(graph: GraphProtocol, objects: [Object]) -> [Object] {
         // We accept everything, therefore we do not return any violations.
         return []
     }
@@ -114,7 +114,7 @@ public class UniqueProperty<Value>: ObjectConstraintRequirement
     /// value from each of the objects and returns a list of those objects
     /// that have duplicate values.
     /// 
-    public func check(graph: Graph, objects: [Object]) -> [Object] {
+    public func check(graph: GraphProtocol, objects: [Object]) -> [Object] {
         var seen: [Value:Array<Object>] = [:]
         
         for object in objects {

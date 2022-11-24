@@ -7,17 +7,9 @@
 
 // TODO: Node should be in World, not Holon, so we can benefit from the semantics
 
-// Note: Node should not have any graph-mutable methods, neither for
-// convenience. We need the user to understand the flow and potential
-// constraints and effects.
-//
-// The original design (removed in this iteration) had mutation on the node.
-public protocol Copying {
-    func copy() -> Self
-}
 /// Object representing a node of a graph.
 ///
-public final class Node: Object {
+public class Node: Object {
     /// Type denoting a role of a node. Some nodes can have special meaning and
     /// treatment at the system level depending on their role. The roles can be:
     ///
@@ -46,13 +38,24 @@ public final class Node: Object {
             }
         }
     }
-
+    
     /// Create a node with a special role.
-    /// 
-    public init(id: OID?=nil,
+    ///
+    public convenience init(id: OID?=nil,
                 labels: LabelSet=LabelSet(),
                 role: Role = .`default`,
                 _ components: any Component...) {
+        self.init(id: id,
+                  labels: labels,
+                  role: role,
+                  components)
+    }
+    /// Create a node with a special role.
+    ///
+    public init(id: OID?=nil,
+                labels: LabelSet=LabelSet(),
+                role: Role = .`default`,
+                _ components: [any Component]) {
         // TODO: Reconsider existence of this initializer
         // – we are just assigning some system labels, which can be removed
         //   later anyway.
@@ -67,13 +70,38 @@ public final class Node: Object {
                        components: components)
         }
     }
-    
-    /// Creates an unassociated copy of the node.
+    /// Duplicates a node to create a new node.
     ///
-//    open func copy() -> Self {
-//        // FIXME: This is weird required casting
-//        return Node(id: id, labels: labels) as! Self
-//    }
+    /// All components are copied. The newly created duplicate will have the
+    /// id set to nil if not provided or set to the provided id. The duplicate
+    /// will not be associated with a world.
+    ///
+    /// The caller is responsible for providing an id and associating the clone
+    /// with a world.
+    ///
+
+    public func clone(id: OID? = nil) -> Node {
+        return Node(id: id,
+                    labels: self.labels,
+                    self.components.components)
+    }
+
+    public subscript(componentType: Component.Type) -> (Component)? {
+        get {
+            return components[componentType]
+        }
+        set(component) {
+            components[componentType] = component
+        }
+    }
+    public subscript<T>(componentType: T.Type) -> T? where T : Component {
+        get {
+            return components[componentType]
+        }
+        set(component) {
+            components[componentType] = component
+        }
+    }
 }
 
 extension Node: Hashable {

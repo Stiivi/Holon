@@ -52,7 +52,7 @@ public class LabelPredicate: NodePredicate, EdgePredicate  {
     }
     
     // FIXME: See Predicate comment about rewriting
-    public func match(_ object: Object) -> Bool {
+    public func match(graph: GraphProtocol, object: Object) -> Bool {
         switch mode {
         case .all: return object.contains(labels: labels)
         case .any: return !labels.intersection(object.labels).isEmpty
@@ -60,7 +60,7 @@ public class LabelPredicate: NodePredicate, EdgePredicate  {
         }
     }
 
-    public func match(_ node: Node) -> Bool {
+    public func match(graph: GraphProtocol, node: Node) -> Bool {
         switch mode {
         case .all: return node.contains(labels: labels)
         case .any: return !labels.intersection(node.labels).isEmpty
@@ -68,7 +68,7 @@ public class LabelPredicate: NodePredicate, EdgePredicate  {
         }
     }
 
-    public func match(_ edge: Edge) -> Bool {
+    public func match(graph: GraphProtocol, edge: Edge) -> Bool {
         switch mode {
         case .all: return edge.contains(labels: labels)
         case .any: return !labels.intersection(edge.labels).isEmpty
@@ -93,9 +93,10 @@ public enum LogicalConnective {
 /// - ToDo: This is waiting for Swift 5.7 for some rewrite.
 ///
 public protocol Predicate {
-    func match(_ object: Object) -> Bool
+    func match(graph: GraphProtocol, object: Object) -> Bool
     func and(_ predicate: Predicate) -> CompoundPredicate
     func or(_ predicate: Predicate) -> CompoundPredicate
+    func not() -> Predicate
 }
 
 extension Predicate {
@@ -105,7 +106,12 @@ extension Predicate {
     public func or(_ predicate: Predicate) -> CompoundPredicate {
         return CompoundPredicate(.or, predicates: self, predicate)
     }
+    public func not() -> Predicate {
+        return NegationPredicate(self)
+    }
 }
+
+// TODO: Add &&, || and ! operators
 
 public class CompoundPredicate: Predicate {
     public let connective: LogicalConnective
@@ -116,10 +122,10 @@ public class CompoundPredicate: Predicate {
         self.predicates = predicates
     }
     
-    public func match(_ object: Object) -> Bool {
+    public func match(graph: GraphProtocol, object: Object) -> Bool {
         switch connective {
-        case .and: return predicates.allSatisfy{ $0.match(object) }
-        case .or: return predicates.contains{ $0.match(object) }
+        case .and: return predicates.allSatisfy{ $0.match(graph: graph, object: object) }
+        case .or: return predicates.contains{ $0.match(graph: graph, object: object) }
         }
     }
 }
@@ -129,7 +135,7 @@ public class NegationPredicate: Predicate {
     public init(_ predicate: any Predicate) {
         self.predicate = predicate
     }
-    public func match(_ object: Object) -> Bool {
-        return !predicate.match(object)
+    public func match(graph: GraphProtocol, object: Object) -> Bool {
+        return !predicate.match(graph: graph, object: object)
     }
 }

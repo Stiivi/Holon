@@ -67,16 +67,7 @@ public class Object: Identifiable, CustomStringConvertible {
     public convenience init(id: OID?=nil, labels: LabelSet=[], components: any Component...) {
         self.init(id: id, labels: labels, components: components)
     }
-    
-//    /// List of initial labels for a given graph object. Subclasses might
-//    /// override this method to provide set of default initial labels that
-//    /// will be set for that particular subclass. Default implementation
-//    /// returns an empty set.
-//    ///
-//    public func initialLabels() -> LabelSet {
-//        return []
-//    }
-    
+
     /// Returns `true` if the object contains the given label.
     ///
     public func contains(label: Label) -> Bool {

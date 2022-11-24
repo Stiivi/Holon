@@ -14,17 +14,17 @@ public protocol NodePredicate: Predicate {
     ///
     /// - Returns: `true` if the node matches.
     ///
-    func match(_ node: Node) -> Bool
+    func match(graph: GraphProtocol, node: Node) -> Bool
 }
 
 // TODO: Reason: see generics rant in Predicate.swift
 extension NodePredicate {
     // TODO: This is a HACK that assumes I know what I am doing when using this.
-    public func match(_ object: Object) -> Bool {
+    public func match(graph: GraphProtocol, object: Object) -> Bool {
         guard let node = object as? Node else {
             return false
         }
-        return match(node)
+        return match(graph: graph, node: node)
     }
 }
 
@@ -36,7 +36,7 @@ public class AnyNodePredicate: NodePredicate {
     
     /// Matches any node – always returns `true`.
     ///
-    public func match(_ node: Node) -> Bool {
+    public func match(graph: GraphProtocol, node: Node) -> Bool {
         return true
     }
 }

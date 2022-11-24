@@ -17,17 +17,17 @@ public protocol EdgePredicate: Predicate {
     ///
     /// Default implementation calls `match(from:,to:,labels:)`
     ///
-    func match(_ edge: Edge) -> Bool
+    func match(graph: GraphProtocol, edge: Edge) -> Bool
 }
 
 // TODO: Reason: see generics rant in Predicate.swift
 extension EdgePredicate {
     // TODO: This is a HACK that assumes I know what I am doing when using this.
-    public func match(_ object: Object) -> Bool {
+    public func match(graph: GraphProtocol, object: Object) -> Bool {
         guard let edge = object as? Edge else {
             return false
         }
-        return match(edge)
+        return match(graph: graph, edge: edge)
     }
 }
 
@@ -43,7 +43,9 @@ public class EdgeObjectPredicate: EdgePredicate {
     let targetPredicate: NodePredicate?
     let edgePredicate: EdgePredicate?
     
-    public init(origin: NodePredicate? = nil, target: NodePredicate? = nil, edge: EdgePredicate? = nil) {
+    public init(origin: NodePredicate? = nil,
+                target: NodePredicate? = nil,
+                edge: EdgePredicate? = nil) {
         guard !(origin == nil && target == nil && edge == nil) else {
             preconditionFailure("At least one of the parameters must be set: origin, target or edge")
         }
@@ -53,14 +55,14 @@ public class EdgeObjectPredicate: EdgePredicate {
         self.edgePredicate = edge
     }
     
-    public func match(_ edge: Edge) -> Bool {
-        if let predicate = originPredicate, !predicate.match(edge.origin) {
+    public func match(graph: GraphProtocol, edge: Edge) -> Bool {
+        if let predicate = originPredicate, !predicate.match(graph: graph, node: edge.origin) {
             return false
         }
-        if let predicate = targetPredicate, !predicate.match(edge.target) {
+        if let predicate = targetPredicate, !predicate.match(graph: graph, node: edge.target) {
             return false
         }
-        if let predicate = edgePredicate, !predicate.match(edge) {
+        if let predicate = edgePredicate, !predicate.match(graph: graph, edge: edge) {
             return false
         }
         return true

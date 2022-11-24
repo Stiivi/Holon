@@ -10,7 +10,7 @@ import Foundation
 // Development notes: World is like a Scene in a game engine or like a Document
 // in a multi-document application.
 //
-public class World: MutableGraphProtocol {
+open class World: MutableGraphProtocol {
     /// Underlying graph storage
     public let graph: Graph
     
@@ -58,6 +58,7 @@ public class World: MutableGraphProtocol {
         // Claim ownership
         node.world = self
         graph.add(node)
+        assert(node.world != nil)
     }
     /// Adds an edge to the world.
     ///

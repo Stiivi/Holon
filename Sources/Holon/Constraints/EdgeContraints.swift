@@ -50,8 +50,10 @@ public class EdgeConstraint: Constraint {
     /// Check the graph for the constraint and return a list of nodes that
     /// violate the constraint
     ///
-    public func check(_ graph: Graph) -> (nodes: [Node], edges: [Edge]) {
-        let matched = graph.edges.filter { match.match($0) }
+    public func check(_ graph: GraphProtocol) -> (nodes: [Node], edges: [Edge]) {
+        let matched = graph.edges.filter {
+            match.match(graph: graph, edge: $0)
+        }
         let violating = requirement.check(graph: graph, edges: matched)
         return (nodes: [], edges: violating)
     }
@@ -65,7 +67,7 @@ public protocol EdgeConstraintRequirement {
     ///
     /// - Returns: List of graph objects that cause constraint violation.
     ///
-    func check(graph: Graph, edges: [Edge]) -> [Edge]
+    func check(graph: GraphProtocol, edges: [Edge]) -> [Edge]
 }
 
 /// Requirement that the edge origin, edge target and the edge itself matches
@@ -107,19 +109,19 @@ public class EdgeLabelsRequirement: EdgeConstraintRequirement {
         self.edgeLabels = edge
     }
     
-    public func check(graph: Graph, edges: [Edge]) -> [Edge] {
+    public func check(graph: GraphProtocol, edges: [Edge]) -> [Edge] {
         var violations: [Edge] = []
         
         for edge in edges {
-            if let predicate = originLabels, !predicate.match(edge.origin) {
+            if let predicate = originLabels, !predicate.match(graph: graph, node: edge.origin) {
                 violations.append(edge)
                 continue
             }
-            if let predicate = targetLabels, !predicate.match(edge.target) {
+            if let predicate = targetLabels, !predicate.match(graph: graph, node: edge.target) {
                 violations.append(edge)
                 continue
             }
-            if let predicate = edgeLabels, !predicate.match(edge) {
+            if let predicate = edgeLabels, !predicate.match(graph: graph, edge: edge) {
                 violations.append(edge)
                 continue
             }

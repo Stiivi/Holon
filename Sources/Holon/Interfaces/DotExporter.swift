@@ -46,13 +46,13 @@ public class DotExporter {
     }
     
     /// Export nodes and edges into the output.
-    public func export(nodes: [Node], edges: [Edge]) throws {
+    public func export(graph: Graph) throws {
         var output: String = ""
         let formatter = DotFormatter(name: name, type: .directed)
 
         output = formatter.header()
         
-        for node in nodes {
+        for node in graph.nodes {
             let label: String
 
             if let attribute = labelAttribute {
@@ -67,15 +67,15 @@ public class DotExporter {
                 label = String(node.id)
             }
 
-            var attributes = format(node: node)
+            var attributes = format(graph: graph, node: node)
             attributes["label"] = label
 
             let id = "\(node.id)"
             output += formatter.node(id, attributes: attributes)
         }
 
-        for edge in edges {
-            let attributes = format(edge: edge)
+        for edge in graph.edges {
+            let attributes = format(graph: graph, edge: edge)
             // TODO: Edge label
             
             output += formatter.edge(from:"\(edge.origin.id)",
@@ -93,11 +93,11 @@ public class DotExporter {
         }
     }
     
-    public func format(node: Node) -> [String:String] {
+    public func format(graph: Graph, node: Node) -> [String:String] {
         var combined: [String:String] = [:]
         
         for style in style?.nodeStyles ?? [] {
-            if style.predicate.match(node) {
+            if style.predicate.match(graph: graph, node: node) {
                 combined.merge(style.attributes) { (_, new) in new}
             }
         }
@@ -105,11 +105,11 @@ public class DotExporter {
         return combined
     }
 
-    public func format(edge: Edge) -> [String:String] {
+    public func format(graph: Graph, edge: Edge) -> [String:String] {
         var combined: [String:String] = [:]
         
         for style in style?.edgeStyles ?? [] {
-            if style.predicate.match(edge) {
+            if style.predicate.match(graph: graph, edge: edge) {
                 combined.merge(style.attributes) { (_, new) in new}
             }
         }

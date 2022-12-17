@@ -5,6 +5,49 @@
 //  Created by Stefan Urbanek on 02/09/2022.
 //
 
+/*
+ 
+ 
+ Valid:
+ 
+                                    %indirect-target
+  N(*) --------------------------------------------> N(%proxy)
+
+            %indirect-origin        %indirect-target
+  N(%proxy) ---------------------------------------> N(%proxy)
+
+            %indirect-origin
+  N(%proxy) ---------------------------------------> N(*)
+
+                                            %subject
+  N(%proxy) ---------------------------------------> N(*)
+
+                          %subject, %indirect-target
+  N(%proxy) ---------------------------------------> N(%proxy)
+
+ 
+ INVALID:
+ 
+
+            %indirect-origin                %subject
+  N(%proxy) ---------------------------------------> N(*)
+
+ 
+                                            %subject
+  N(%proxy) ---------------------------------------> N(*)
+       |                                    %subject
+       +-------------------------------------------> N(*)
+
+ 
+              %indirect-origin       %indirect-target
+  N(%! proxy) ---------------------------------------> N(! %proxy)
+
+ 
+ 
+ 
+ */
+
+
 /// Constraints for checking graph integrity when the graph contains indirection
 /// patterns.
 ///

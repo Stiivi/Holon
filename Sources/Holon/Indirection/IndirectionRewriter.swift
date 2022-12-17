@@ -5,6 +5,31 @@
 //  Created by Stefan Urbanek on 29/08/2022.
 //
 
+/*
+
+ Intent: Add edges that represent direct connections.
+ 
+ Input:
+    - all edges where:
+        (
+            (origin is %indirect AND origin is %proxy)
+                OR (target is %indirect AND target is %proxy)
+        )
+        AND edge is NOT %subject
+        
+  Output:
+    - for each such edge propose an edge between the ultimate subject
+ 
+
+  Algorithm:
+    1. get all %proxies
+    2. create a set of tuples: (proxy, subject,
+ 
+ 
+ 
+ */
+
+
 
 /// A graph rewriter that rewrites indirect edges into direct edges.
 ///

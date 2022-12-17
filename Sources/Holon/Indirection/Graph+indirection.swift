@@ -15,13 +15,7 @@
  */
 
 
-extension Graph {
-    /// List of all ports in the graph.
-    ///
-    public var proxies: [Node] {
-        nodes.filter { $0.isProxy }
-    }
-
+extension MutableGraphProtocol {
     /// Connects a proxy node to its subject.
     ///
     /// Creates a properly annotated edge between the proxy object and its
@@ -40,16 +34,18 @@ extension Graph {
                         id: OID? = nil) -> Edge {
         precondition(proxy.isProxy)
         precondition(!outgoing(proxy).contains(where:{ $0.isSubject }),
-        "An edge from a proxy to its subject already exists")
-
+                     "An edge from a proxy to its subject already exists")
+        
         // TODO: Check for cycles
         
-        return connect(from: proxy,
-                       to: target,
-                       labels: labels.union([IndirectionLabel.Subject]),
-                       id: id)
+        let edge = Edge(origin: proxy,
+                        target: target,
+                        labels: labels.union([IndirectionLabel.Subject]),
+                        id: id)
+        self.add(edge)
+        return edge
     }
-
+    
     /// Connects two nodes with indirection. If either origin or a target are
     /// ports, then the edge at that endpoint will be marked as indirect.
     ///
@@ -71,10 +67,20 @@ extension Graph {
         else {
             additionalLabels = Set()
         }
-        return connect(from: origin,
-                       to: target,
-                       labels: labels.union(additionalLabels),
-                       id: id)
+        let edge = Edge(origin: origin,
+                        target: target,
+                        labels: labels.union(additionalLabels),
+                        id: id)
+        self.add(edge)
+        return edge
+    }
+}
+
+extension GraphProtocol {
+    /// List of all ports in the graph.
+    ///
+    public var proxies: [Node] {
+        nodes.filter { $0.isProxy }
     }
     
     /// Get a path from a proxy node to the real subject. Real subject is a

@@ -48,14 +48,15 @@ public class Node: Object {
         self.init(id: id,
                   labels: labels,
                   role: role,
-                  components)
+                  components: components)
     }
+    
     /// Create a node with a special role.
     ///
     public init(id: OID?=nil,
                 labels: LabelSet=LabelSet(),
                 role: Role = .`default`,
-                _ components: [any Component]) {
+                components: [any Component]) {
         // TODO: Reconsider existence of this initializer
         // – we are just assigning some system labels, which can be removed
         //   later anyway.
@@ -83,7 +84,7 @@ public class Node: Object {
     public func clone(id: OID? = nil) -> Node {
         return Node(id: id,
                     labels: self.labels,
-                    self.components.components)
+                    components: self.components.components)
     }
 
     public subscript(componentType: Component.Type) -> (Component)? {

@@ -29,27 +29,38 @@ public enum EdgeDirection {
 ///
 public struct EdgeSelector {
     /// Label of an edge. Edges with this label are conforming to this edge type.
-    public let label: Label
+    public let labels: LabelSet
     
     /// Direction of an edge.
     public let direction: EdgeDirection
     
     /// A selector with reversed direction.
     public var reversed: EdgeSelector {
-        return EdgeSelector(label, direction: direction.reversed)
+        return EdgeSelector(labels, direction: direction.reversed)
     }
     
-    /// Create a labelled edge type.
+    /// Create an edge selector that matches edges with given label.
     ///
     /// - Parameters:
     ///     - label: Label of edges that conform to this type
     ///     - direction: Direction of edges to be considered when relating
     ///       to a projected node.
     public init(_ label: Label, direction: EdgeDirection = .outgoing) {
-        self.label = label
+        self.labels = LabelSet([label])
         self.direction = direction
     }
     
+    /// Create an edge selector that matches edges with all given labels.
+    ///
+    /// - Parameters:
+    ///     - labels: Labels of edges that conform to this type
+    ///     - direction: Direction of edges to be considered when relating
+    ///       to a projected node.
+    public init(_ labels: LabelSet, direction: EdgeDirection = .outgoing) {
+        self.labels = labels
+        self.direction = direction
+    }
+
     /// Returns endpoint of the edge based on the direction. Returns edge's
     /// origin if the direction is ``EdgeDirection/incoming`` or returns edge's target if the
     /// direction is ``EdgeDirection/outgoing``.

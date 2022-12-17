@@ -121,6 +121,7 @@ extension GraphProtocol {
 
         return result
     }
+    
     public func incoming(_ target: Node) -> [Edge] {
         let result: [Edge]
         
@@ -130,6 +131,7 @@ extension GraphProtocol {
 
         return result
     }
+    
     public func neighbours(_ node: Node) -> [Edge] {
         let result: [Edge]
         
@@ -139,15 +141,15 @@ extension GraphProtocol {
 
         return result
     }
+    
     public func neighbours(_ node: Node, selector: EdgeSelector) -> [Edge] {
-        // TODO: Find a better name
         let edges: [Edge]
         switch selector.direction {
         case .incoming: edges = self.incoming(node)
         case .outgoing: edges = self.outgoing(node)
         }
         
-        return edges.filter { $0.contains(label: selector.label) }
+        return edges.filter { $0.contains(labels: selector.labels) }
     }
 
 }

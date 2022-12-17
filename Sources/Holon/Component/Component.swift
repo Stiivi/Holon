@@ -12,7 +12,9 @@ public protocol Component {
 public struct ComponentSet {
     var components: [Component] = []
     
-    public init() { }
+    public init(_ components: [Component]) {
+        self.set(components)
+    }
     
     public mutating func set(_ component: Component) {
         let componentType = type(of: component)
@@ -107,4 +109,14 @@ public struct ComponentSet {
             type(of: $0) == componentType
         }
     }
+}
+
+extension ComponentSet: ExpressibleByArrayLiteral {
+    public init(arrayLiteral elements: ArrayLiteralElement...) {
+        self.init(elements)
+    }
+    
+    public typealias ArrayLiteralElement = Component
+    
+    
 }

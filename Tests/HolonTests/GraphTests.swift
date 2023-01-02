@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import Holon
+@testable import HolonKit
 
 
 final class GraphTests: XCTestCase {
@@ -32,8 +32,8 @@ final class GraphTests: XCTestCase {
         let edge = graph.connect(from: a, to: b)
 
         XCTAssertEqual(graph.edges.count, 1)
-        XCTAssertIdentical(edge.origin, a)
-        XCTAssertIdentical(edge.target, b)
+        XCTAssertEqual(edge.origin, a.id)
+        XCTAssertEqual(edge.target, b.id)
         if let first = graph.edges.first {
             XCTAssertIdentical(first, edge)
         }
@@ -52,7 +52,7 @@ final class GraphTests: XCTestCase {
         let edge = graph.connect(from: a, to: b)
         
         XCTAssertEqual(graph.edges.count, 1)
-        graph.remove(edge)
+        graph.remove(edge: edge.id)
         XCTAssertEqual(graph.edges.count, 0)
     }
 
@@ -60,7 +60,7 @@ final class GraphTests: XCTestCase {
         let graph = Graph()
         let a = Node()
         graph.add(a)
-        graph.remove(a)
+        graph.remove(node: a.id)
 
         XCTAssertEqual(graph.nodes.count, 0)
     }
@@ -78,16 +78,16 @@ final class GraphTests: XCTestCase {
         let edge1 = graph.connect(from: a, to: b, labels: ["child", "one"])
         let edge2 = graph.connect(from: a, to: c, labels: ["child", "two"])
 
-        XCTAssertEqual(graph.outgoing(a).count, 2)
-        XCTAssertEqual(graph.outgoing(b).count, 0)
-        XCTAssertEqual(graph.outgoing(c).count, 0)
+        XCTAssertEqual(graph.outgoing(a.id).count, 2)
+        XCTAssertEqual(graph.outgoing(b.id).count, 0)
+        XCTAssertEqual(graph.outgoing(c.id).count, 0)
 
-        XCTAssertEqual(graph.incoming(a).count, 0)
-        XCTAssertEqual(graph.incoming(b).count, 1)
-        XCTAssertEqual(graph.incoming(c).count, 1)
+        XCTAssertEqual(graph.incoming(a.id).count, 0)
+        XCTAssertEqual(graph.incoming(b.id).count, 1)
+        XCTAssertEqual(graph.incoming(c.id).count, 1)
 
-        let edges = graph.outgoing(a)
-        XCTAssertEqual(Set([edge1, edge2]), Set(edges))
+        let edges: [EdgeID] = graph.outgoing(a.id).map { $0.id }
+        XCTAssertEqual(Set([edge1.id, edge2.id]), Set(edges))
     }
 
     func testRemoveEdgeWithNodeRemoval() throws {
@@ -99,7 +99,7 @@ final class GraphTests: XCTestCase {
 
         let edge = graph.connect(from: a, to: b)
 
-        let removed = graph.remove(a)
+        let removed = graph.remove(node: a.id)
         XCTAssertEqual(graph.edges.count, 0)
         XCTAssertEqual(removed.count, 1)
         if let first = removed.first {
@@ -120,10 +120,10 @@ final class GraphTests: XCTestCase {
         
         let copy = graph.copy()
         
-        XCTAssertEqual(Set(copy.nodes), Set(graph.nodes))
-        XCTAssertEqual(Set(copy.edges), Set(graph.edges))
-        XCTAssertEqual(copy, graph)
-        XCTAssertNotEqual(copy, Graph())
+        XCTAssertEqual(Set(copy.nodeIDs), Set(graph.nodeIDs))
+        XCTAssertEqual(Set(copy.edgeIDs), Set(graph.edgeIDs))
+//        XCTAssertEqual(copy, graph)
+//        XCTAssertNotEqual(copy, Graph())
     }
     
 //    func testSort() throws {

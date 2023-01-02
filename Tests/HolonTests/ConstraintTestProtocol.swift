@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import Holon
+@testable import HolonKit
 
 /// A protocol for testing constraints using ConstraintChecker.
 ///

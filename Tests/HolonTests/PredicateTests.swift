@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import Holon
+@testable import HolonKit
 
 final class PredicateTests: XCTestCase {
     let graph = Graph()

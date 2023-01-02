@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import Holon
+@testable import HolonKit
 
 struct Thing: Component, KeyedAttributes {
     var name: String {
@@ -84,7 +84,7 @@ final class ChangesTests: XCTestCase {
     func testAddEdgeChange() throws {
         let node = Node()
         graph.add(node)
-        let edge = Edge(origin: node, target: node)
+        let edge = Edge(origin: node.id, target: node.id)
         let change: GraphChange = .addEdge(edge)
         
         let revert = graph.applyChange(change)
@@ -97,7 +97,7 @@ final class ChangesTests: XCTestCase {
     func testRemoveEdgeChange() throws {
         let node = Node()
         graph.add(node)
-        let edge = Edge(origin: node, target: node)
+        let edge = Edge(origin: node.id, target: node.id)
         graph.add(edge)
         
         let change: GraphChange = .removeEdge(edge)

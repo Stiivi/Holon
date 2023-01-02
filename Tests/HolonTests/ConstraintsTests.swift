@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import Holon
+@testable import HolonKit
 
 final class ConstraintsTests: XCTestCase {
     func testUniqueNeighbourhoodConstraint() throws {
@@ -38,7 +38,7 @@ final class ConstraintsTests: XCTestCase {
         /// Non-required constraint is satisfied, the required constraint is not
         XCTAssertTrue(violations.edges.isEmpty)
         XCTAssertTrue(violations.nodes.isEmpty)
-        XCTAssertEqual(constraintRequired.check(graph).nodes, [source])
+        XCTAssertEqual(constraintRequired.check(graph).nodes, [source.id])
 
         
         /// Both constraints are satisfied
@@ -53,8 +53,8 @@ final class ConstraintsTests: XCTestCase {
         /// Both constraints are not satisfied.
         flow2.set(label: "flow")
         ///
-        XCTAssertEqual(constraint.check(graph).nodes, [source])
-        XCTAssertEqual(constraintRequired.check(graph).nodes, [source])
+        XCTAssertEqual(constraint.check(graph).nodes, [source.id])
+        XCTAssertEqual(constraintRequired.check(graph).nodes, [source.id])
     }
     
     func testEdgeConstraint() throws {
@@ -79,7 +79,7 @@ final class ConstraintsTests: XCTestCase {
         
         let violations1 = c1.check(graph)
         
-        XCTAssertEqual(violations1.edges, [edgeBad])
+        XCTAssertEqual(violations1.edges, [edgeBad.id])
         
         let c2 = EdgeConstraint(
             name: "test_constraint",
@@ -111,7 +111,7 @@ final class EdgeRequirementsTests: XCTestCase {
         let requirement = RejectAll()
         let violations = requirement.check(graph: graph, edges: [edge1, edge2])
         XCTAssertEqual(violations.count, 2)
-        XCTAssertEqual(violations, [edge1, edge2])
+        XCTAssertEqual(violations, [edge1.id, edge2.id])
         
     }
 }
@@ -147,13 +147,13 @@ final class TestUniqueProperty: XCTestCase {
         let objects = [n1, n1d, n2, n3, n3d]
 
         // FIXME: Once we fix protocol remove the map
-        let violations = req.check(graph: graph, objects: objects).map { $0 as! Node }
+        let violations = req.check(graph: graph, objects: objects)
         XCTAssertEqual(violations.count, 4)
         
-        XCTAssertTrue(violations.contains(n1))
-        XCTAssertTrue(violations.contains(n1d))
-        XCTAssertTrue(violations.contains(n3))
-        XCTAssertTrue(violations.contains(n3d))
+        XCTAssertTrue(violations.contains(n1.id))
+        XCTAssertTrue(violations.contains(n1d.id))
+        XCTAssertTrue(violations.contains(n3.id))
+        XCTAssertTrue(violations.contains(n3d.id))
     }
 }
 
@@ -177,7 +177,7 @@ final class TestEdgeLabelsRequirement: XCTestCase {
         let invalid = requirement.check(graph: graph, edges: graph.edges)
         
         XCTAssertEqual(invalid.count, 1)
-        XCTAssertTrue(invalid.contains(invalidEdge))
-        XCTAssertFalse(invalid.contains(validEdge))
+        XCTAssertTrue(invalid.contains(invalidEdge.id))
+        XCTAssertFalse(invalid.contains(validEdge.id))
     }
 }

@@ -8,7 +8,7 @@
 import Foundation
 
 import XCTest
-@testable import Holon
+@testable import HolonKit
 
 
 struct NameComponent: Component {

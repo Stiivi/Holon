@@ -56,23 +56,23 @@ extension GraphProtocol {
     ///   the origin, the target or both are the node that is passed as
     ///   an argument. Behaviour is undefined if it is not the case.
     ///
-    public func topologicalSort(_ nodeIDs: [NodeID], follow: (Node) -> [Edge]) throws -> [NodeID] {
+    public func topologicalSort(_ toSort: [NodeID], follow: (Node) -> [Edge]) throws -> [NodeID] {
         // FIXME: Returned [Edge] from `follow` is not safe - might have made-up edges
         
-        var sorted: [Node] = []
-        let nodes = nodeIDs.compactMap { self.node($0) }
+        var sorted: [NodeID] = []
+        let nodes: [Node] = toSort.compactMap { self.node($0) }
 
         // S ← Set of all nodes with no incoming edge
-        var sources: [Node] = nodes.filter {
-            follow($0).isEmpty
-        }
+        var sources: [NodeID] = nodes.filter { follow($0).isEmpty }
+                                    .map { $0.id }
 
         // TODO: WARNING: `follow` can return unrelated edges!
-        var edges = nodes.flatMap { follow($0) }
+        // TODO: We are calling 'follow' twice here
+        var edges: [Edge] = nodes.flatMap { follow($0) }
         
         //
         //while S is not empty do
-        var node: Node
+        var node: NodeID
         
         while !sources.isEmpty {
             //    remove a node n from S
@@ -80,15 +80,15 @@ extension GraphProtocol {
             //    add n to L
             sorted.append(node)
             
-            let outgoing: [Edge] = edges.filter { $0.origin == node.id }
+            let outgoing: [Edge] = edges.filter { $0.origin == node }
             
             for edge in outgoing {
                 edges.removeAll { $0 === edge }
 
                 // We assume that the graph is not corrupted (that is why forced unrwap)
-                let m:Node = self.node(edge.target)!
+                let m: NodeID = edge.target
                 
-                if edges.allSatisfy({$0.target != m.id}) {
+                if edges.allSatisfy({$0.target != m}) {
                     sources.append(m)
                 }
             }
@@ -103,6 +103,6 @@ extension GraphProtocol {
             throw GraphCycleError(edges: edges.map {$0.id} )
         }
 
-        return sorted.map { $0.id }
+        return sorted
     }
 }

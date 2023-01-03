@@ -90,6 +90,7 @@ open class World: MutableGraphProtocol {
     ///
     /// - Precondition: Node must belong to the graph.
     ///
+    @discardableResult
     public func remove(node oid: ObjectID) -> [Edge] {
         guard let node = graph.node(oid) else {
             preconditionFailure("World has no node with ID: \(oid)")

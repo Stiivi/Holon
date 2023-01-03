@@ -57,6 +57,7 @@ extension MutableGraphProtocol {
                                 to targetID: NodeID,
                                 labels: LabelSet=[],
                                 id: OID?=nil) -> Edge {
+        // TODO: Alternative names: connectWithIndirection, or flag: indirection: true
         let origin = node(originID)!
         let target = node(targetID)!
         // TODO: Check for cycles
